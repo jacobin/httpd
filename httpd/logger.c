@@ -71,6 +71,11 @@ static void log_print(log_level_t lv, const char *msg)
     const char *str = NULL;
     const char *file_name = NULL;
     FILE* fp = NULL;
+	char datetime[30] = {0};
+    time_t t;
+    struct tm *p;
+    t = time(NULL) + 8 * 3600;
+    p = gmtime(&t);
 
     switch (lv)
     {
@@ -88,6 +93,8 @@ static void log_print(log_level_t lv, const char *msg)
         break;
     }
 
+	sprintf(datetime, "%d-%02d-%02d_%02d:%02d:%02d", 1900+p->tm_year, 1+p->tm_mon, p->tm_mday, (p->tm_hour)%24, p->tm_min, p->tm_sec);
+
     if (SAVE_FILE)
     {
         // write to file
@@ -95,6 +102,8 @@ static void log_print(log_level_t lv, const char *msg)
         fp = fopen(file_name, "ab");
         if (fp)
         {
+            fwrite(datetime, 1, strlen(datetime), fp);
+            fwrite(" ", 1, 1, fp);
             fwrite(str, 1, strlen(str), fp);
             fwrite(" ", 1, 1, fp);
             fwrite(msg, 1, strlen(msg), fp);
@@ -102,7 +111,7 @@ static void log_print(log_level_t lv, const char *msg)
             fclose(fp);
         }
     }
-    printf("%s %s\n", str, msg);
+    printf("%s %s %s\n", datetime, str, msg);
 }
 
 static const char* log_file_name()

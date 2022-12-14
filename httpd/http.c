@@ -682,7 +682,7 @@ static int reset_filename_from_formdata(event_t *ev, char **formdata, int size)
 
     // find "\r\n\r\n"
     p = *formdata;
-    for (int i = 0; i <= size-4; i++)
+    for ( i = 0; i <= size-4; i++)
     {
         if (0 == memcmp(*formdata + i, CRLF CRLF, strlen(CRLF CRLF)))
         {

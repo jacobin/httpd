@@ -1,10 +1,13 @@
 #include "httpd.h"
 #include <errno.h>
-
+#include "utils.h"
 
 #define LF                  (u_char) '\n'
 #define CR                  (u_char) '\r'
 #define CRLF                "\r\n"
+#define Bool int
+#define False 0
+#define True 1
 
 typedef struct  
 {
@@ -33,7 +36,7 @@ static void  release_event(event_t *ev);
 static event_data_t *create_event_data(const char *header, const char *html);
 static event_data_t *create_event_data_fp(const char *header, FILE *fp, int read_len, int total_len);
 static void  release_event_data(event_t *ev);
-static void  uri_decode(char* uri);
+static Bool  uri_decode(char* uri);
 static uint8_t ishex(uint8_t x);
 static char *local_file_list(char *path);
 static int   reset_filename_from_formdata(event_t *ev, char **formdata, int size);
@@ -107,6 +110,8 @@ static void read_callback(event_t *ev)
     int   content_length = 0;
     char *temp = NULL;
     char  file_path[MAX_PATH] = {0};
+    int iSnprintRet = -1;
+    int iTmp = 0;
 
     if (ev->status == EV_IDLE)
     {
@@ -119,10 +124,13 @@ static void read_callback(event_t *ev)
         if (!buf)
             return;
         parse_request_header(buf, &header);
-        uri_decode(header.uri);
+        if ( False == uri_decode(header.uri) )
+        {
+            return;
+        }
         header.uri = utf8_to_ansi(header.uri);
         log_info("{%s:%d} >>> Entry recv ... uri=%s", __FUNCTION__, __LINE__, header.uri);
-        if (strcmp(header.method, "GET") && strcmp(header.method, "POST"))
+        if (_strnicmp(header.method, "GET", 3 ) && _strnicmp(header.method, "POST", 4))
         {
             // 501 Not Implemented
             response_http_501_page(ev);
@@ -130,7 +138,7 @@ static void read_callback(event_t *ev)
             free(buf);
             return;
         }
-        if (0 == strcmp(header.method, "POST"))
+        if (0 == _strnicmp(header.method, "POST", 4))
         {
             /***** This program is not supported now.                             *****/
             /***** Just using Content-Type = multipart/form-data when upload file *****/
@@ -141,21 +149,24 @@ static void read_callback(event_t *ev)
             // 4. get Content-Type
             // 5. Content-Type is json or others
         }
-        if (0 == strncmp(header.uri, "/upload", strlen("/upload")) && 0 == strcmp(header.method, "POST"))
+        if (0 == _strnicmp(header.uri, "/upload", strlen("/upload")) && 0 == _strnicmp(header.method, "POST", 4))
         {
             // get upload file save path from uri
             memset(file_path, 0, sizeof(file_path));
-            memcpy(file_path, root_path(), strlen(root_path()));
+            iSnprintRet = memcpy_s(file_path, sizeof(file_path), root_path(), strlen(root_path()));
+            ASSERT( 0 == iSnprintRet );
             if (strlen(header.uri) > strlen("/upload?path="))
             {
-                memcpy(file_path+strlen(file_path), header.uri+strlen("/upload?path="), strlen(header.uri)-strlen("/upload?path="));
+                iTmp = strlen(file_path);
+                iSnprintRet = memcpy_s(file_path+iTmp, sizeof(file_path)-iTmp, header.uri+strlen("/upload?path="), strlen(header.uri)-strlen("/upload?path="));
+                ASSERT( 0 == iSnprintRet );
             }
-            if (0 == strcmp(header.method, "POST"))
+            if (0 == _strnicmp(header.method, "POST", 4))
             {
                 // get Content-Length boundary_length
                 for (i=0; i<header.fields_count; i++)
                 {
-                    if (0 == strcmp(header.fields[i].key, "Content-Length"))
+                    if (0 == _strnicmp(header.fields[i].key, "Content-Length", 14))
                     {
                         content_length = atoi(header.fields[i].value);
                         break;
@@ -173,24 +184,27 @@ static void read_callback(event_t *ev)
 
                 // get boundary
                 ev->data = (event_data_t*)malloc(sizeof(event_data_t)-sizeof(char)+BUFFER_UNIT);
-                memset(ev->data, 0, sizeof(event_data_t)-sizeof(char)+BUFFER_UNIT);
                 if (!ev->data)
                 {
+                    log_error("{%s:%d} malloc fail.", __FUNCTION__, __LINE__);
                     // 500 Internal Server Error
                     response_http_500_page(ev);
                     release_request_header(&header);
                     free(buf);
                     return;
                 }
+                memset(ev->data, 0, sizeof(event_data_t)-sizeof(char)+BUFFER_UNIT);
                 for (i=0; i<header.fields_count; i++)
                 {
-                    if (0 == strcmp(header.fields[i].key, "Content-Type"))
+                    if (0 == _strnicmp(header.fields[i].key, "Content-Type", 12 ))
                     {
-                        temp = strstr(header.fields[i].value, "boundary=");
+                        temp = stristr(header.fields[i].value, "boundary=");
                         if (temp)
                         {
+                            ASSERT( strlen("boundary=") < strlen(temp) );
                             temp += strlen("boundary=");
-                            memcpy(ev->data->boundary, temp, strlen(temp));
+                            iSnprintRet = memcpy_s(ev->data->boundary, sizeof(ev->data->boundary), temp, strlen(temp));
+                            ASSERT( 0 == iSnprintRet );
                         }
                         break;
                     }
@@ -210,7 +224,9 @@ static void read_callback(event_t *ev)
                 free(buf);
 
                 // set event
-                memcpy(ev->data->file, file_path, strlen(file_path));
+                ASSERT( strlen(file_path) < sizeof(ev->data->file) );
+                iSnprintRet = memcpy_s(ev->data->file, sizeof(ev->data->file), file_path, strlen(file_path));
+                ASSERT( 0 == iSnprintRet );
                 ev->data->offset = 0;
                 ev->data->total = content_length;
 
@@ -238,8 +254,12 @@ static void read_callback(event_t *ev)
         {
             // send file
             memset(file_path, 0, sizeof(file_path));
-            memcpy(file_path, root_path(), strlen(root_path()));
-            memcpy(file_path+strlen(file_path), header.uri+1, strlen(header.uri+1));
+            iSnprintRet = _snprintf( file_path, sizeof(file_path)-1, "%s%s", root_path(), header.uri+1 );
+            if ( iSnprintRet <= 0 )
+            {
+                ASSERT( 0 );
+                memset(file_path, 0, sizeof(file_path));
+            }
             response_send_file_page(ev, file_path);
             free(buf);
             release_request_header(&header);
@@ -366,12 +386,14 @@ static void read_request_boundary(event_t *ev)
             return; \
         } \
         compare_buff_size -= ptr - compare_buff; \
-        memcpy(compare_buff, ptr, compare_buff_size); \
+        iSnprintRet = memcpy_s(compare_buff, sizeof(compare_buff), ptr, compare_buff_size); \
+        ASSERT( 0 == iSnprintRet ); \
         compare_buff[compare_buff_size] = 0; \
         goto _re_find; \
     } else { \
         ev->data->size = compare_buff + compare_buff_size - ptr; \
-        memcpy(ev->data->data, ptr, ev->data->size); \
+        iSnprintRet = memcpy_s(ev->data->data, BUFFER_UNIT, ptr, ev->data->size); \
+        ASSERT( 0 == iSnprintRet ); \
     } \
 } while (0)
 
@@ -383,6 +405,7 @@ static void read_request_boundary(event_t *ev)
     uint32_t compare_buff_size = 0;
     char     buffer[BUFFER_UNIT+1] = {0};
     char     compare_buff[BUFFER_UNIT*2 + 1] = {0};
+    int iSnprintRet = -1;
 
     offset = ev->data->total - ev->data->offset > BUFFER_UNIT ? BUFFER_UNIT : ev->data->total - ev->data->offset;
     ret = network_read(ev->fd, buffer, offset);
@@ -398,9 +421,11 @@ static void read_request_boundary(event_t *ev)
         memset(compare_buff, 0, sizeof(compare_buff));
         if (ev->data->size)
         {
-            memcpy(compare_buff, ev->data->data, ev->data->size);
+            iSnprintRet = memcpy_s(compare_buff, sizeof(compare_buff), ev->data->data, ev->data->size);
+            ASSERT( 0 == iSnprintRet );
         }
-        memcpy(compare_buff+ev->data->size, buffer, offset);
+        iSnprintRet = memcpy_s(compare_buff+ev->data->size, sizeof(compare_buff)-ev->data->size, buffer, offset);
+        ASSERT( 0 == iSnprintRet );
         compare_buff_size = offset + ev->data->size;
         ev->data->size = 0;
         memset(ev->data->data, 0, BUFFER_UNIT);
@@ -444,7 +469,8 @@ static void read_request_boundary(event_t *ev)
             WRITE_FILE(ev->data->fp, compare_buff, writen, ev);
             // backup
             ev->data->size = compare_buff + compare_buff_size - ptr;
-            memcpy(ev->data->data, ptr, ev->data->size);
+            iSnprintRet = memcpy_s(ev->data->data, BUFFER_UNIT, ptr, ev->data->size);
+            ASSERT( 0 == iSnprintRet );
             break;
         default:
             break;
@@ -555,6 +581,7 @@ static event_data_t *create_event_data(const char *header, const char *html)
     int header_length = 0;
     int html_length = 0;
     int data_length = 0;
+    int iSnprintRet = -1;
 
     if (header)
         header_length = strlen(header);
@@ -573,9 +600,15 @@ static event_data_t *create_event_data(const char *header, const char *html)
     ev_data->offset = header_length + html_length;
     ev_data->size = header_length + html_length;
     if (header)
-        memcpy(ev_data->data, header, header_length);
+    {
+        iSnprintRet = memcpy_s(ev_data->data, header_length, header, header_length);
+        ASSERT( 0 == iSnprintRet );
+    }
     if (html)
-        memcpy(ev_data->data + header_length, html, html_length);
+    {
+        iSnprintRet = memcpy_s(ev_data->data + header_length, html_length, html, html_length);
+        ASSERT( 0 == iSnprintRet );
+    }
     return ev_data;
 }
 
@@ -584,6 +617,7 @@ static event_data_t *create_event_data_fp(const char *header, FILE *fp, int read
     event_data_t* ev_data = NULL;
     int header_length = 0;
     int data_length = 0;
+    int iSnprintRet = -1;
 
     if (header)
         header_length = strlen(header);
@@ -599,7 +633,10 @@ static event_data_t *create_event_data_fp(const char *header, FILE *fp, int read
     ev_data->total = total_len;
     ev_data->size = read_len + header_length;
     if (header)
-        memcpy(ev_data->data, header, header_length);
+    {
+        iSnprintRet = memcpy_s(ev_data->data, header_length, header, header_length);
+        ASSERT( 0 == iSnprintRet );
+    }
     if (read_len != fread(ev_data->data + header_length, 1, read_len, fp))
     {
         log_error("{%s:%d} fread failed", __FUNCTION__, __LINE__);
@@ -623,20 +660,24 @@ static void release_event_data(event_t *ev)
     }
 }
 
-static void uri_decode(char* uri)
+static Bool uri_decode(char* uri)
 {
-    int len = strlen(uri);
+    const unsigned int len = strlen(uri);
     char *out = NULL;
-    char *o = out;
+    char *o = NULL;
     char *s = uri;
-    char *end = uri + strlen(uri);
+    const char *end = uri + strlen(uri);
     int c;
 
+    int iSnprintRet = -1;
+
+
+    ASSERT( *end == 0 );
     out = (char*)malloc(len+1);
     if (!out)
     {
         log_error("{%s:%d} malloc fail.", __FUNCTION__, __LINE__);
-        return;
+        return False;
     }
 
     for (o = out; s <= end; o++)
@@ -651,24 +692,24 @@ static void uri_decode(char* uri)
         {
             // bad uri
             free(out);
-            return;
+            return False;
         }
 
-        if (out)
-        {
-            *o = c;
-        }
+        *o = c;
     }
 
-    memcpy(uri, out, strlen(out));
+    ASSERT( strlen(out) <= len );
+    iSnprintRet = memcpy_s(uri, len, out, strlen(out));
+    ASSERT( 0 == iSnprintRet );
     uri[strlen(out)] = 0;
     free(out);
+    return True;
 }
 
 static uint8_t ishex(uint8_t x)
 {
-    return	(x >= '0' && x <= '9')	||
-        (x >= 'a' && x <= 'f')	||
+    return (x >= '0' && x <= '9') ||
+        (x >= 'a' && x <= 'f') ||
         (x >= 'A' && x <= 'F');
 }
 
@@ -679,6 +720,7 @@ static int reset_filename_from_formdata(event_t *ev, char **formdata, int size)
     int   i         = 0;
     int   found     = 0;
     char *anis      = NULL;
+    int iSnprintRet = -1;
 
     // find "\r\n\r\n"
     p = *formdata;
@@ -696,7 +738,7 @@ static int reset_filename_from_formdata(event_t *ev, char **formdata, int size)
         return 2;
 
     // file upload file name from formdata
-    file_name = strstr(p, "filename=\"");
+    file_name = stristr(p, "filename=\"");
     if (!file_name)
         return 0;
     file_name += strlen("filename=\"");
@@ -719,7 +761,8 @@ static int reset_filename_from_formdata(event_t *ev, char **formdata, int size)
     {
         if (ev->data->file[i] == '/')
         {
-            memcpy(ev->data->file + i + 1, anis, strlen(anis) + 1);
+            iSnprintRet = memcpy_s(ev->data->file + i + 1, sizeof(ev->data->file) -i -1, anis, strlen(anis) + 1);
+            ASSERT( 0 == iSnprintRet );
             break;
         }
     }
@@ -832,6 +875,7 @@ static char* local_file_list(char *path)
     char *size_str = NULL;
     char *utf8 = NULL;
     int i;
+    int iSnprintRet = -1;
 
     sprintf(filter, "%s*", path);
     // list directory
@@ -848,6 +892,12 @@ static char* local_file_list(char *path)
             if (!result)
             {
                 result = (char*)malloc(size);
+                if ( NULL == result )
+                {
+                    log_error("{%s:%d} malloc fail.", __FUNCTION__, __LINE__);
+                    FindClose(hFind);
+                    return NULL;
+                }
             }
             utf8 = ansi_to_utf8(FindFileData.cFileName);
             sprintf(line, format_dir, utf8, utf8);
@@ -857,8 +907,16 @@ static char* local_file_list(char *path)
             {
                 size += BUFFER_UNIT;
                 result = (char*)realloc(result, size);
+                if ( NULL == result )
+                {
+                    log_error("{%s:%d} realloc fail.", __FUNCTION__, __LINE__);
+                    free(utf8);
+                    FindClose(hFind);
+                    return NULL;
+                }
             }
-            memcpy(result+offset, line, line_length);
+            iSnprintRet = memcpy_s(result+offset, size - offset, line, line_length);
+            ASSERT( 0 == iSnprintRet );
             offset += line_length;
             free(utf8);
         }
@@ -879,6 +937,12 @@ static char* local_file_list(char *path)
             if (!result)
             {
                 result = (char*)malloc(size);
+                if ( NULL == result )
+                {
+                    log_error("{%s:%d} malloc fail.", __FUNCTION__, __LINE__);
+                    FindClose(hFind);
+                    return NULL;
+                }
             }
             utf8 = ansi_to_utf8(FindFileData.cFileName);
             sprintf(line, format_file, utf8, utf8);
@@ -888,7 +952,8 @@ static char* local_file_list(char *path)
                 line[line_length++] = ' ';
             }
             size_str = uint32_to_str(FindFileData.nFileSizeLow);
-            memcpy(line+line_length, size_str, strlen(size_str));
+            iSnprintRet = memcpy_s(line+line_length, sizeof(line)-line_length, size_str, strlen(size_str));
+            ASSERT( 0 == iSnprintRet );
             line_length += strlen(size_str);
             line[line_length++] = CR;
             line[line_length++] = LF;
@@ -898,8 +963,16 @@ static char* local_file_list(char *path)
             {
                 size += BUFFER_UNIT;
                 result = (char*)realloc(result, size);
+                if ( NULL == result )
+                {
+                    log_error("{%s:%d} realloc fail.", __FUNCTION__, __LINE__);
+                    free(utf8);
+                    FindClose(hFind);
+                    return NULL;
+                }
             }
-            memcpy(result+offset, line, line_length);
+            iSnprintRet = memcpy_s(result+offset, size-offset, line, line_length);
+            ASSERT( 0 == iSnprintRet );
             offset += line_length;
             free(utf8);
         }
@@ -949,7 +1022,7 @@ static const char *reponse_content_type(char *file_name)
     {
         for (i=0; i<sizeof(content_type)/sizeof(content_type[0]); i++)
         {
-            if (0 == strcmp(content_type[i].key, ext))
+            if (0 == _stricmp(content_type[i].key, ext))
             {
                 return content_type[i].value;
             }
@@ -1041,6 +1114,7 @@ static void response_send_file_page(event_t *ev, char *file_name)
     int len;
     event_data_t* ev_data = NULL;
     event_t ev_ = {0};
+    int iSnprintRet = -1;
 
     fp = fopen(file_name, "rb");
     if (!fp)
@@ -1058,7 +1132,8 @@ static void response_send_file_page(event_t *ev, char *file_name)
         len = total > BUFFER_UNIT ? BUFFER_UNIT : total;
         sprintf(header, response_header_format(), "200 OK", reponse_content_type(file_name), total);
         ev_data = create_event_data_fp(header, fp, len, total);
-        memcpy(ev_data->file, file_name, strlen(file_name));
+        iSnprintRet = memcpy_s(ev_data->file, sizeof(ev_data->file), file_name, strlen(file_name));
+        ASSERT( 0 == iSnprintRet );
         ev_data->offset += len;
     }
     else
@@ -1066,7 +1141,8 @@ static void response_send_file_page(event_t *ev, char *file_name)
         fseek(fp, ev->data->offset, SEEK_SET);
         len = ev->data->total - ev->data->offset > BUFFER_UNIT ? BUFFER_UNIT : ev->data->total - ev->data->offset;
         ev_data = create_event_data_fp(NULL, fp, len, ev->data->total);
-        memcpy(ev_data->file, file_name, strlen(file_name));
+        iSnprintRet = memcpy_s(ev_data->file, sizeof(ev_data->file), file_name, strlen(file_name));
+        ASSERT( 0 == iSnprintRet );
         ev_data->offset = ev->data->offset + len;
         release_event_data(ev);
     }

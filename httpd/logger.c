@@ -71,7 +71,7 @@ static void log_print(log_level_t lv, const char *msg)
     const char *str = NULL;
     const char *file_name = NULL;
     FILE* fp = NULL;
-	char datetime[30] = {0};
+    char datetime[30] = {0};
     time_t t;
     struct tm *p;
     t = time(NULL) + 8 * 3600;
@@ -93,7 +93,7 @@ static void log_print(log_level_t lv, const char *msg)
         break;
     }
 
-	sprintf(datetime, "%d-%02d-%02d_%02d:%02d:%02d", 1900+p->tm_year, 1+p->tm_mon, p->tm_mday, (p->tm_hour)%24, p->tm_min, p->tm_sec);
+    sprintf(datetime, "%d-%02d-%02d_%02d:%02d:%02d", 1900+p->tm_year, 1+p->tm_mon, p->tm_mday, (p->tm_hour)%24, p->tm_min, p->tm_sec);
 
     if (SAVE_FILE)
     {
@@ -118,6 +118,7 @@ static const char* log_file_name()
 {
     static char file_name[MAX_PATH] = {0};
     static struct tm last = {0};
+    int iSnprintRet = -1;
 
     time_t t = time(0);
     struct tm now;
@@ -131,7 +132,8 @@ static const char* log_file_name()
     }
     memcpy(&last, &now, sizeof(struct tm));
     memset(file_name, 0, sizeof(file_name));
-    memcpy(file_name, root_path(), strlen(root_path()));
+    iSnprintRet = memcpy_s(file_name, sizeof(file_name), root_path(), strlen(root_path()));
+    ASSERT( 0 == iSnprintRet );
     strftime(file_name+strlen(root_path()), sizeof(file_name)-strlen(root_path()), "%Y-%m-%d.log", &now);
     return file_name;
 }

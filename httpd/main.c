@@ -1,4 +1,5 @@
 #include "httpd.h"
+#include "utils.h"
 #include <Dbghelp.h> 
 
 
@@ -50,9 +51,16 @@ LONG __stdcall crush_callback(struct _EXCEPTION_POINTERS* ep)
 int main()
 {
     UINT16 port = 80;
+
+start_again:
+    port = 80;
     SetUnhandledExceptionFilter(crush_callback);
     
     http_startup(&port);
-    system("pause");
+
+    mySleep(2000);
+
+    goto start_again;
+
     return 0;
 }

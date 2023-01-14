@@ -12,5 +12,7 @@ int remove_file(char *file_name);
 char* file_ext(char* file_name);
 char* root_path();
 char* uint32_to_str(uint32_t n);
+void mySleep(int sleepMs);
+char* stristr( const char* str1, const char* str2 );
 
 #endif

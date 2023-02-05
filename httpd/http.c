@@ -297,7 +297,7 @@ static void write_callback(event_t *ev)
 static int read_request_header(event_t *ev, char **buf, int *size)
 {
     char c;
-    int len = 1;
+    const int len = 1;
     int idx = 0;
     int ret;
 
@@ -694,11 +694,14 @@ static Bool_t uri_decode(char* uri)
         *o = c;
     }
 
-    ASSERT( strlen(out) <= len );
-    iSnprintRet = memcpy_s(uri, len, out, strlen(out));
-    ASSERT( 0 == iSnprintRet );
-    uri[strlen(out)] = 0;
+    {
+    unsigned int nTmp = strlen(out);
+    ASSERT(nTmp <= len);
+    iSnprintRet = memcpy_s(uri, len, out, nTmp);
+    ASSERT(0 == iSnprintRet);
+    uri[nTmp] = 0;
     free(out);
+    }
     return True;
 }
 

@@ -6,6 +6,11 @@
 typedef char* charp2free_t;
 typedef wchar_t* wcharp2free_t;
 
+typedef int index_t;
+typedef int Bool_t;
+#define False 0
+#define True 1
+
 wcharp2free_t ansi_to_unicode(char* str);
 charp2free_t unicode_to_ansi(wchar_t* str);
 wcharp2free_t utf8_to_unicode(char* str);
@@ -20,5 +25,7 @@ char* uint32_to_str(uint32_t n);
 void mySleep(int sleepMs);
 char* stristr( const char* str1, const char* str2 );
 ULONGLONG filesize64( DWORD nFileSizeHigh, DWORD nFileSizeLow );
+charp2free_t html_escape(const char* s);
+charp2free_t url_escape(const char* s);
 
 #endif

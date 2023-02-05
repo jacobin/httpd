@@ -5,9 +5,6 @@
 #define LF                  (u_char) '\n'
 #define CR                  (u_char) '\r'
 #define CRLF                "\r\n"
-#define Bool int
-#define False 0
-#define True 1
 
 typedef struct  
 {
@@ -36,7 +33,7 @@ static void  release_event(event_t *ev);
 static event_data_t *create_event_data(const char *header, const char *html);
 static event_data_t *create_event_data_fp(const char *header, FILE *fp, int read_len, int total_len);
 static void  release_event_data(event_t *ev);
-static Bool  uri_decode(char* uri);
+static Bool_t  uri_decode(char* uri);
 static uint8_t ishex(uint8_t x);
 static char *local_file_list(char *path);
 static int   reset_filename_from_formdata(event_t *ev, char **formdata, int size);
@@ -660,7 +657,7 @@ static void release_event_data(event_t *ev)
     }
 }
 
-static Bool uri_decode(char* uri)
+static Bool_t uri_decode(char* uri)
 {
     const unsigned int len = strlen(uri);
     char *out = NULL;
@@ -668,7 +665,6 @@ static Bool uri_decode(char* uri)
     char *s = uri;
     const char *end = uri + strlen(uri);
     int c;
-
     int iSnprintRet = -1;
 
 
@@ -937,10 +933,12 @@ static char* local_file_list(char *path)
         log_error("{%s:%d} Invalid File Handle. GetLastError=%d", __FUNCTION__, __LINE__, GetLastError());
         return NULL;
     }
-    do 
+    do
     {
         if (!(FILE_ATTRIBUTE_DIRECTORY & FindFileData.dwFileAttributes))
         {
+            charp2free_t escape_html = NULL;
+            charp2free_t escape_uri = NULL;
             if (!result)
             {
                 result = (char*)malloc(size);
@@ -952,7 +950,20 @@ static char* local_file_list(char *path)
                 }
             }
             utf8 = unicode_to_utf8(FindFileData.cFileName);
-            sprintf(line, format_file, utf8, utf8);
+
+            escape_html = html_escape(utf8);
+            if (NULL == escape_html) {
+                free(utf8);
+                continue;
+            }
+            escape_uri = url_escape(utf8);
+            if (NULL == escape_uri) {
+                free(utf8);
+                free(escape_html);
+                continue;
+            }
+
+            sprintf(line, format_file, escape_uri, escape_html);
             line_length = strlen(line);
             line[line_length++] = 0x20;
             for (i=strlen(utf8); i<60; i++)
@@ -975,6 +986,8 @@ static char* local_file_list(char *path)
                 {
                     log_error("{%s:%d} realloc fail.", __FUNCTION__, __LINE__);
                     free(utf8);
+                    free(escape_html);
+                    free(escape_uri);
                     FindClose(hFind);
                     return NULL;
                 }
@@ -983,6 +996,8 @@ static char* local_file_list(char *path)
             ASSERT( 0 == iSnprintRet );
             offset += line_length;
             free(utf8);
+            free(escape_html);
+            free(escape_uri);
         }
 		memset( &FindFileData, 0, sizeof(FindFileData) );
     } while (FindNextFileW(hFind, &FindFileData));

@@ -317,3 +317,273 @@ ULONGLONG filesize64(DWORD nFileSizeHigh, DWORD nFileSizeLow)
     return ul.QuadPart;
 }
 
+/////////////////////////////////////////////////////////////////////////////{{
+/////////////////////////////////////////////////////////////////////////////{{
+/////////////////////////////////////////////////////////////////////////////{{
+static const char g_escape_chars[26][5] =
+{
+   "\x20%20",
+     "\"%22",
+      "#%23",
+      "$%24",
+      "%%25",
+      "&%26",
+      "'%27",
+      "+%2B",
+      ",%2C",
+      "/%2F",
+      ":%3A",
+      ";%3B",
+      "<%3C",
+      "=%3D",
+      ">%3E",
+      "?%3F",
+      "@%40",
+      "[%5B",
+     "\\%5C",
+      "]%5D",
+      "^%5E",
+      "`%60",
+      "{%7B",
+      "|%7C",
+      "}%7D",
+      "~%7E"
+};
+
+static index_t url_escape3(const char escape_chars[][5], index_t endidx, char c, Bool_t* b)
+{
+    const index_t mid_idx = endidx / 2;
+    const char mid_str0 = escape_chars[mid_idx][0];
+
+    assert(0 <= endidx);
+
+    if (0 == endidx)
+    {
+        *b = False;
+        return -1;
+    }
+
+    if (mid_str0 == c)
+    {
+        *b = True;
+        return mid_idx;
+    }
+    else if (mid_str0 < c)
+    {
+        const index_t newidx0 = mid_idx + 1;
+        return newidx0 + url_escape3(&escape_chars[newidx0], endidx - newidx0, c, b);
+    }
+    else
+    {
+        assert(c < mid_str0);
+        return url_escape3(escape_chars, mid_idx, c, b);
+    }
+    assert(0);
+}
+
+static const char* url_escape2(char c)
+{
+    index_t i = 0;
+    Bool_t b;
+    i = url_escape3(g_escape_chars, 26, c, &b);
+    if (False == b) return NULL;
+    assert(0 <= i);
+    return &g_escape_chars[i][1];
+}
+//
+//int main()
+//{
+//    char* s = NULL;
+//    s = url_escape2('\x20'); if (s) printf("%s\n", s); else printf("error\n");
+//    s = url_escape2('\"');   if (s) printf("%s\n", s); else printf("error\n");
+//    s = url_escape2('#');    if (s) printf("%s\n", s); else printf("error\n");
+//    s = url_escape2('$');    if (s) printf("%s\n", s); else printf("error\n");
+//    s = url_escape2('%');    if (s) printf("%s\n", s); else printf("error\n");
+//    s = url_escape2('&');    if (s) printf("%s\n", s); else printf("error\n");
+//    s = url_escape2('\'');   if (s) printf("%s\n", s); else printf("error\n");
+//    s = url_escape2('+');    if (s) printf("%s\n", s); else printf("error\n");
+//    s = url_escape2(',');    if (s) printf("%s\n", s); else printf("error\n");
+//    s = url_escape2('/');    if (s) printf("%s\n", s); else printf("error\n");
+//    s = url_escape2(':');    if (s) printf("%s\n", s); else printf("error\n");
+//    s = url_escape2(';');    if (s) printf("%s\n", s); else printf("error\n");
+//    s = url_escape2('<');    if (s) printf("%s\n", s); else printf("error\n");
+//    s = url_escape2('=');    if (s) printf("%s\n", s); else printf("error\n");
+//    s = url_escape2('>');    if (s) printf("%s\n", s); else printf("error\n");
+//    s = url_escape2('?');    if (s) printf("%s\n", s); else printf("error\n");
+//    s = url_escape2('@');    if (s) printf("%s\n", s); else printf("error\n");
+//    s = url_escape2('[');    if (s) printf("%s\n", s); else printf("error\n");
+//    s = url_escape2('\\');   if (s) printf("%s\n", s); else printf("error\n");
+//    s = url_escape2(']');    if (s) printf("%s\n", s); else printf("error\n");
+//    s = url_escape2('^');    if (s) printf("%s\n", s); else printf("error\n");
+//    s = url_escape2('`');    if (s) printf("%s\n", s); else printf("error\n");
+//    s = url_escape2('{');    if (s) printf("%s\n", s); else printf("error\n");
+//    s = url_escape2('|');    if (s) printf("%s\n", s); else printf("error\n");
+//    s = url_escape2('}');    if (s) printf("%s\n", s); else printf("error\n");
+//    s = url_escape2('~');    if (s) printf("%s\n", s); else printf("error\n");
+//    s = url_escape2('\x2');  if (s) printf("%s\n", s); else printf("error\n");
+//    s = url_escape2('A');    if (s) printf("%s\n", s); else printf("error\n");
+//    s = url_escape2('\x7F'); if (s) printf("%s\n", s); else printf("error\n");
+//    return 0;
+//}
+
+charp2free_t url_escape(const char* s)
+{
+    size_t i = 0;
+    size_t used = 0;
+    charp2free_t result = NULL;
+    const size_t sLen = strlen(s);
+
+    size_t result_size = sLen + 3;
+    result = (charp2free_t)malloc(result_size);
+    if (NULL == result) {
+        return NULL;
+    }
+
+    for (used = 0, i = 0; i < sLen; i++) {
+        const char c = s[i];
+        const char* hex = url_escape2(c);
+        if (NULL != hex) {
+            strcpy(&result[used], hex);
+            used += 3;
+        }
+        else {
+            result[used++] = c;
+        }
+
+        if (result_size <= (used + 4)) { // such as "%20"
+            charp2free_t result2 = NULL;
+            result_size += 100;
+            result2 = (charp2free_t)realloc(result, result_size);
+            if (NULL == result2) {
+                free(result);
+                return NULL;
+            }
+            result = result2;
+        }
+    }
+    result[used] = (char)NULL;
+
+    return result;
+}
+//
+//int main()
+//{
+//    const char s[] = "为凸显“红顶商人”地位，肖建华不但平时戴着红帽子，还公开喊话，说自己帮习近平姐姐、曾庆红儿子理财。图片中，#肖建华 在香港四季酒店的楼下广场，装模作样地看着中共高官的回忆录.jpg";
+//    charp2free_t result = url_escape(s);
+//    printf("%s", result);
+//    free(result);
+//    return 0;
+//}
+/////////////////////////////////////////////////////////////////////////////}}
+/////////////////////////////////////////////////////////////////////////////}}
+/////////////////////////////////////////////////////////////////////////////}}
+
+
+/////////////////////////////////////////////////////////////////////////////{{
+/////////////////////////////////////////////////////////////////////////////{{
+/////////////////////////////////////////////////////////////////////////////{{
+//#include <assert.h>
+//#include <string.h>
+//#include <memory.h>
+//#include <stdio.h>
+//#include <stdlib.h>
+//
+//typedef int index_t;
+//typedef int Bool_t;
+//typedef char* charp2free_t;
+//#define False 0
+//#define True 1
+
+static const char g_chars2bescaped[] = { '\t', '\n', '\x20', '!', '"', '#', '$', '%', '&', '\'', '(', ')', '*', '+', ',', '-', '.', '/', ':', ';', '<', '=', '>', '?', '@', '[', '\\', ']', '^', '_', '`', '{', '|', '}', '~' };
+
+static index_t bins2(const char escape_chars[], index_t endidx, char c, Bool_t* b)
+{
+    const index_t mid_idx = endidx / 2;
+    const char mid_str0 = escape_chars[mid_idx];
+
+    assert(0 <= endidx);
+
+    if (0 == endidx) {
+        *b = False;
+        return -1;
+    }
+
+    if (mid_str0 == c) {
+        *b = True;
+        return mid_idx;
+    }
+    else if (mid_str0 < c) {
+        const index_t newidx0 = mid_idx + 1;
+        return newidx0 + bins2(&escape_chars[newidx0], endidx - newidx0, c, b);
+    }
+    else {
+        assert(c < mid_str0);
+        return bins2(escape_chars, mid_idx, c, b);
+    }
+    assert(0);
+}
+
+static index_t bins(char c)
+{
+    index_t i = 0;
+    Bool_t b;
+    i = bins2(g_chars2bescaped, 35, c, &b);
+    if (False == b) return -1;
+    assert(0 <= i);
+    return i;
+}
+
+charp2free_t html_escape(const char* s)
+{
+    size_t i = 0;
+    size_t used = 0;
+    charp2free_t result = NULL;
+    const size_t sLen = strlen(s);
+
+    size_t result_size = sLen + 1 + 5;
+    result = (charp2free_t)malloc(result_size);
+    if (NULL == result) {
+        return NULL;
+    }
+
+    for (used = 0, i = 0; i < sLen; i++) {
+        const char c = s[i];
+        const index_t idx = bins(c);
+        if (-1 != idx) {
+            char s6[7];
+            sprintf(s6, "&#%d;", c);
+            strcpy(&result[used], s6);
+            used += strlen(s6);
+        }
+        else {
+            result[used++] = c;
+        }
+
+        if (result_size <= (used + 7)) { // such as "&#126;"
+            charp2free_t result2 = NULL;
+            result_size += 100;
+            result2 = (charp2free_t)realloc(result, result_size);
+            if (NULL == result2) {
+                free(result);
+                return NULL;
+            }
+            result = result2;
+        }
+    }
+    result[used] = (char)NULL;
+
+    return result;
+}
+//
+//int main()
+//{
+//    const char s[] = "为凸显“红顶商人”地位，肖建华不但平时戴着红帽子，还公开喊话，说自己帮习近平姐姐、曾庆红儿子理财。图片中，#肖建华 在香港四季酒店的楼下广场，装模作样地看着中共高官的回忆录.jpg";
+//    charp2free_t result = html_escape(s);
+//    printf("%s", result);
+//    free(result);
+//    return 0;
+//}
+
+/////////////////////////////////////////////////////////////////////////////}}
+/////////////////////////////////////////////////////////////////////////////}}
+/////////////////////////////////////////////////////////////////////////////}}

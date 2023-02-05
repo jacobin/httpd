@@ -20,7 +20,7 @@ typedef enum
 
 typedef struct
 {
-    char                    file[MAX_PATH];
+    char                    file[MAX_PATH2];
     char                    boundary[BOUNDARY_MAX_LEN];
     uint32_t                total;
     uint32_t                offset;

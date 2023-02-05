@@ -132,7 +132,7 @@ char* file_ext(char* file_name)
 char* root_path()
 {
     static char* root=NULL;
-    const int nRootLenBudget = MAX_PATH;
+    const int nRootLenBudget = MAX_PATH2;
     uint32_t i;
     int nRootLen = 0;
     int nRootLenIncSlashNull = 0;
@@ -307,3 +307,12 @@ char* stristr( const char* str1, const char* str2 )
 //
 //    return 0;
 //}
+
+ULONGLONG filesize64(DWORD nFileSizeHigh, DWORD nFileSizeLow)
+{
+    ULARGE_INTEGER ul;
+    ul.HighPart = nFileSizeHigh;
+    ul.LowPart = nFileSizeLow;
+    return ul.QuadPart;
+}
+

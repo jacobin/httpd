@@ -116,7 +116,7 @@ static void log_print(log_level_t lv, const char *msg)
 
 static const char* log_file_name()
 {
-    static char file_name[MAX_PATH] = {0};
+    static char file_name[MAX_PATH2] = {0};
     static struct tm last = {0};
     int iSnprintRet = -1;
 

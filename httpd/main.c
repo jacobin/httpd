@@ -9,7 +9,7 @@ LONG __stdcall crush_callback(struct _EXCEPTION_POINTERS* ep)
 {
     time_t t;
     struct tm *p;
-    char fname[MAX_PATH] = {0};
+    char fname[MAX_PATH2] = {0};
     MINIDUMP_EXCEPTION_INFORMATION    exceptioninfo;
     HANDLE hFile;
 

@@ -109,7 +109,7 @@ static void read_callback(event_t *ev)
     int   i;
     int   content_length = 0;
     char *temp = NULL;
-    char  file_path[MAX_PATH] = {0};
+    char  file_path[MAX_PATH2] = {0};
     int iSnprintRet = -1;
     int iTmp = 0;
 
@@ -864,9 +864,9 @@ static char* local_file_list(char *path)
 {
     const char* format_dir = "<a href=\"%s/\">%s/</a>" CRLF;
     const char* format_file = "<a href=\"%s\">%s</a>";
-    WIN32_FIND_DATAA FindFileData;
+    WIN32_FIND_DATAW FindFileData;
     HANDLE hFind;
-    char filter[MAX_PATH] = {0};
+    wchar_t filter[MAX_PATH2] = {0};
     char *result = NULL;
     char line[BUFFER_UNIT] = {0};
     int line_length;
@@ -876,10 +876,15 @@ static char* local_file_list(char *path)
     char *utf8 = NULL;
     int i;
     int iSnprintRet = -1;
+    char digit[22];
 
-    sprintf(filter, "%s*", path);
+    wchar_t* pathW = ansi_to_unicode(path); 
+    assert( NULL != pathW );
+    swprintf(filter, _countof(filter), L"%s*", pathW );
+	free(pathW);
     // list directory
-    hFind = FindFirstFileA(filter, &FindFileData);
+	memset( &FindFileData, 0, sizeof(FindFileData) );
+    hFind = FindFirstFileW(filter, &FindFileData);
     if (hFind == INVALID_HANDLE_VALUE) 
     {
         log_error("{%s:%d} Invalid File Handle. GetLastError=%d", __FUNCTION__, __LINE__, GetLastError());
@@ -899,7 +904,7 @@ static char* local_file_list(char *path)
                     return NULL;
                 }
             }
-            utf8 = ansi_to_utf8(FindFileData.cFileName);
+            utf8 = unicode_to_utf8(FindFileData.cFileName);
             sprintf(line, format_dir, utf8, utf8);
             line_length = strlen(line);
             line[line_length] = 0;
@@ -920,11 +925,13 @@ static char* local_file_list(char *path)
             offset += line_length;
             free(utf8);
         }
-    } while (FindNextFileA(hFind, &FindFileData));
+		memset( &FindFileData, 0, sizeof(FindFileData) );
+    } while (FindNextFileW(hFind, &FindFileData));
     FindClose(hFind);
 
     // list files
-    hFind = FindFirstFileA(filter, &FindFileData);
+	memset( &FindFileData, 0, sizeof(FindFileData) );
+    hFind = FindFirstFileW(filter, &FindFileData);
     if (hFind == INVALID_HANDLE_VALUE) 
     {
         log_error("{%s:%d} Invalid File Handle. GetLastError=%d", __FUNCTION__, __LINE__, GetLastError());
@@ -944,14 +951,15 @@ static char* local_file_list(char *path)
                     return NULL;
                 }
             }
-            utf8 = ansi_to_utf8(FindFileData.cFileName);
+            utf8 = unicode_to_utf8(FindFileData.cFileName);
             sprintf(line, format_file, utf8, utf8);
             line_length = strlen(line);
-            for (i=strlen(FindFileData.cFileName); i<60; i++)
+            line[line_length++] = 0x20;
+            for (i=strlen(utf8); i<60; i++)
             {
-                line[line_length++] = ' ';
+                line[line_length++] = 0x20;
             }
-            size_str = uint32_to_str(FindFileData.nFileSizeLow);
+            size_str = _ui64toa(filesize64(FindFileData.nFileSizeHigh, FindFileData.nFileSizeLow), digit, 10);
             iSnprintRet = memcpy_s(line+line_length, sizeof(line)-line_length, size_str, strlen(size_str));
             ASSERT( 0 == iSnprintRet );
             line_length += strlen(size_str);
@@ -976,7 +984,8 @@ static char* local_file_list(char *path)
             offset += line_length;
             free(utf8);
         }
-    } while (FindNextFileA(hFind, &FindFileData));
+		memset( &FindFileData, 0, sizeof(FindFileData) );
+    } while (FindNextFileW(hFind, &FindFileData));
     FindClose(hFind);
     result[offset] = 0;
 

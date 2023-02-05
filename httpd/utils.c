@@ -1,7 +1,8 @@
 #include "httpd.h"
 #include "logger.h"
+#include "utils.h"
 
-wchar_t* ansi_to_unicode(char* str)
+wcharp2free_t ansi_to_unicode(char* str)
 {
     wchar_t* result;
     int len = MultiByteToWideChar(CP_ACP, 0, str, -1, NULL, 0);
@@ -16,7 +17,7 @@ wchar_t* ansi_to_unicode(char* str)
     return result;
 }
 
-char* unicode_to_ansi(wchar_t* str)
+charp2free_t unicode_to_ansi(wchar_t* str)
 {
     char* result;
     int len = WideCharToMultiByte(CP_ACP, 0, str, -1, NULL, 0, NULL, NULL);
@@ -31,7 +32,7 @@ char* unicode_to_ansi(wchar_t* str)
     return result;
 }
 
-wchar_t* utf8_to_unicode(char* str)
+wcharp2free_t utf8_to_unicode(char* str)
 {
     wchar_t* result;
     int len = MultiByteToWideChar(CP_UTF8, 0, str, -1, NULL, 0);
@@ -46,7 +47,7 @@ wchar_t* utf8_to_unicode(char* str)
     return result;
 }
 
-char* unicode_to_utf8(wchar_t* str)
+charp2free_t unicode_to_utf8(wchar_t* str)
 {
     char* result;
     int len = WideCharToMultiByte(CP_UTF8, 0, str, -1, NULL, 0, NULL, NULL);
@@ -61,7 +62,7 @@ char* unicode_to_utf8(wchar_t* str)
     return result;
 }
 
-char* utf8_to_ansi(char* str)
+charp2free_t utf8_to_ansi(char* str)
 {
     char* ansi = NULL;
     wchar_t* uni = utf8_to_unicode(str);
@@ -79,7 +80,7 @@ char* utf8_to_ansi(char* str)
     return ansi;
 }
 
-char* ansi_to_utf8(char* str)
+charp2free_t ansi_to_utf8(char* str)
 {
     char* utf8 = NULL;
     wchar_t* uni = ansi_to_unicode(str);
@@ -129,7 +130,7 @@ char* file_ext(char* file_name)
     return ext;
 }
 
-char* root_path()
+charp2free_t root_path()
 {
     static char* root=NULL;
     const int nRootLenBudget = MAX_PATH2;

@@ -3,16 +3,19 @@
 
 #define MAX_PATH2 (2*MAX_PATH)
 
-wchar_t* ansi_to_unicode(char* str);
-char* unicode_to_ansi(wchar_t* str);
-wchar_t* utf8_to_unicode(char* str);
-char* unicode_to_utf8(wchar_t* str);
-char* utf8_to_ansi(char* str);
-char* ansi_to_utf8(char* str);
+typedef char* charp2free_t;
+typedef wchar_t* wcharp2free_t;
+
+wcharp2free_t ansi_to_unicode(char* str);
+charp2free_t unicode_to_ansi(wchar_t* str);
+wcharp2free_t utf8_to_unicode(char* str);
+charp2free_t unicode_to_utf8(wchar_t* str);
+charp2free_t utf8_to_ansi(char* str);
+charp2free_t ansi_to_utf8(char* str);
 int file_exist(char *file_name);
 int remove_file(char *file_name);
 char* file_ext(char* file_name);
-char* root_path();
+charp2free_t root_path();
 char* uint32_to_str(uint32_t n);
 void mySleep(int sleepMs);
 char* stristr( const char* str1, const char* str2 );

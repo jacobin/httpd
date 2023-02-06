@@ -1076,7 +1076,7 @@ static const char *reponse_content_type(const char *file_name)
         { "c",      "text/plain"                },
         { "h",      "text/plain"                },
         { "js",     "application/x-javascript"  },
-        { "png",    "application/x-png"         },
+        { "png",    "image/png"         },
         { "jpg",    "image/jpeg"                },
         { "jpeg",   "image/jpeg"                },
         { "jpe",    "image/jpeg"                },

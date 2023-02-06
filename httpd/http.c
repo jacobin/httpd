@@ -940,8 +940,20 @@ static char* local_file_list(char *path)
     {
         if (!(FILE_ATTRIBUTE_DIRECTORY & FindFileData.dwFileAttributes))
         {
+            // Points to be aware of when it comes to memory leaks:
+            //    1.Resource release in globe scope
+            //       result
+            //    2.Resource release in function scope
+            //       FindClose(hFind);
+            //    3.Resource release of "IF scope"
+            //       utf8
+            //       ansi
+            //       escape_html
+            //       escape_uri
             charp2free_t escape_html = NULL;
             charp2free_t escape_uri = NULL;
+            charp2free_t ansi = NULL;
+
             if (!result)
             {
                 result = (char*)malloc(size);
@@ -953,23 +965,47 @@ static char* local_file_list(char *path)
                 }
             }
             utf8 = unicode_to_utf8(FindFileData.cFileName);
+            if ( NULL == utf8 )
+            {
+                log_error("{%s:%d} unicode_to_utf8 fail.", __FUNCTION__, __LINE__);
+                FindClose(hFind);
+                free(result);
+                return NULL;
+            }
+            ansi = unicode_to_ansi(FindFileData.cFileName);
+            if ( NULL == ansi )
+            {
+                log_error("{%s:%d} unicode_to_ansi fail.", __FUNCTION__, __LINE__);                
+                FindClose(hFind);
+                free(result);
+                free(utf8);
+                return NULL;
+            }
 
             escape_html = html_escape(utf8);
             if (NULL == escape_html) {
+                log_error("{%s:%d} fail.", __FUNCTION__, __LINE__);
+                FindClose(hFind);
+                free(result);
                 free(utf8);
-                continue;
+                free(ansi);
+                return NULL;
             }
             escape_uri = url_escape(utf8);
             if (NULL == escape_uri) {
+                log_error("{%s:%d} fail.", __FUNCTION__, __LINE__);
+                FindClose(hFind);
+                free(result);
                 free(utf8);
+                free(ansi);
                 free(escape_html);
-                continue;
+                return NULL;
             }
 
             sprintf(line, format_file, escape_uri, escape_html);
             line_length = strlen(line);
             line[line_length++] = 0x20;
-            for (i=strlen(utf8); i<60; i++)
+            for (i=strlen(ansi); i<60; i++)
             {
                 line[line_length++] = 0x20;
             }
@@ -988,10 +1024,12 @@ static char* local_file_list(char *path)
                 if ( NULL == result )
                 {
                     log_error("{%s:%d} realloc fail.", __FUNCTION__, __LINE__);
+                    FindClose(hFind);
+                    free(result);
                     free(utf8);
+                    free(ansi);
                     free(escape_html);
                     free(escape_uri);
-                    FindClose(hFind);
                     return NULL;
                 }
             }
@@ -999,6 +1037,7 @@ static char* local_file_list(char *path)
             ASSERT( 0 == iSnprintRet );
             offset += line_length;
             free(utf8);
+            free(ansi);
             free(escape_html);
             free(escape_uri);
         }

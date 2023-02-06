@@ -115,7 +115,7 @@ ret_code_t event_dispatch()
     fd_set exceptfds;
     struct timeval timeout = { 0, 500000 };
     int ret = -1;
-    uint32_t i;
+    uint32_t i = UINT32_MAX;
 
     while (TRUE)
     {
@@ -238,7 +238,7 @@ static int event_del_by_fd(uint32_t fd, struct rbtree_t *t, fd_set *s)
     struct rbnode_t  k;
     struct rbnode_t *n = NULL;
     event_t e = { 0 };
-    uint32_t i = 0;
+    uint32_t i = UINT32_MAX;
 
     for (i = 0; i<_active_size; i++)
     {

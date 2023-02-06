@@ -20,7 +20,7 @@ ret_code_t network_listen(uint16_t *port, SOCKET *fd)
 {
     struct sockaddr_in addr;
     BOOL optval = TRUE;
-    int ret;
+    int ret = -1;
 
     *fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (INVALID_SOCKET == *fd)

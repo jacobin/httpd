@@ -4,7 +4,7 @@
 
 wcharp2free_t ansi_to_unicode(const char* str)
 {
-    wchar_t* result;
+    wchar_t* result = NULL;
     int len = MultiByteToWideChar(CP_ACP, 0, str, -1, NULL, 0);
     result = (wchar_t*)malloc((len+1)*sizeof(wchar_t));
     if ( NULL == result )
@@ -19,7 +19,7 @@ wcharp2free_t ansi_to_unicode(const char* str)
 
 charp2free_t unicode_to_ansi(const wchar_t* str)
 {
-    char* result;
+    char* result = NULL;
     int len = WideCharToMultiByte(CP_ACP, 0, str, -1, NULL, 0, NULL, NULL);
     result = (char*)malloc((len+1)*sizeof(char));
     if ( NULL == result )
@@ -34,7 +34,7 @@ charp2free_t unicode_to_ansi(const wchar_t* str)
 
 wcharp2free_t utf8_to_unicode(const char* str)
 {
-    wchar_t* result;
+    wchar_t* result = NULL;
     int len = MultiByteToWideChar(CP_UTF8, 0, str, -1, NULL, 0);
     result = (wchar_t*)malloc((len+1)*sizeof(wchar_t));
     if ( NULL == result )
@@ -49,7 +49,7 @@ wcharp2free_t utf8_to_unicode(const char* str)
 
 charp2free_t unicode_to_utf8(const wchar_t* str)
 {
-    char* result;
+    char* result = NULL;
     int len = WideCharToMultiByte(CP_UTF8, 0, str, -1, NULL, 0, NULL, NULL);
     result =(char*)malloc((len+1)*sizeof(char));
     if ( NULL == result )
@@ -117,7 +117,7 @@ int remove_file(const char *file_name)
 const char* file_ext(const char* file_name)
 {
     const char *ext = NULL;
-    int i;
+    int i = -1;
 
     for (i=strlen(file_name)-1; i>=0; i--)
     {
@@ -134,7 +134,7 @@ charp2free_t root_path()
 {
     static char* root=NULL;
     const int nRootLenBudget = MAX_PATH2;
-    uint32_t i;
+    uint32_t i = 0;
     int nRootLen = 0;
     int nRootLenIncSlashNull = 0;
     int iTmp = 0;
@@ -384,7 +384,7 @@ static index_t url_escape3(const char escape_chars[][5], index_t endidx, char c,
 static const char* url_escape2(char c)
 {
     index_t i = 0;
-    Bool_t b;
+    Bool_t b = False;
     i = url_escape3(g_escape_chars, 26, c, &b);
     if (False == b) return NULL;
     assert(0 <= i);
@@ -526,7 +526,7 @@ static index_t bins2(const char escape_chars[], index_t endidx, char c, Bool_t* 
 static index_t bins(char c)
 {
     index_t i = 0;
-    Bool_t b;
+    Bool_t b = False;
     i = bins2(g_chars2bescaped, 35, c, &b);
     if (False == b) return -1;
     assert(0 <= i);

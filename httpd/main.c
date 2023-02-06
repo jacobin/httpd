@@ -7,11 +7,11 @@
 
 LONG __stdcall crush_callback(struct _EXCEPTION_POINTERS* ep)
 {
-    time_t t;
-    struct tm *p;
+    time_t t = 0;
+    struct tm *p = NULL;
     char fname[MAX_PATH2] = {0};
     MINIDUMP_EXCEPTION_INFORMATION    exceptioninfo;
-    HANDLE hFile;
+    HANDLE hFile = INVALID_HANDLE_VALUE;
 
     t = time(NULL) + 8 * 3600;
     p = gmtime(&t);

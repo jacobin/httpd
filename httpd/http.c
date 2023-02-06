@@ -874,7 +874,7 @@ static char* local_file_list(const char *path)
     const char* format_dir = "<a href=\"%s/\">%s/</a>" CRLF;
     const char* format_file = "<a href=\"%s\">%s</a>";
     WIN32_FIND_DATAW FindFileData;
-    HANDLE hFind;
+    HANDLE hFind = INVALID_HANDLE_VALUE;
     wchar_t filter[MAX_PATH2] = {0};
     char *result = NULL;
     char line[BUFFER_UNIT] = {0};
@@ -883,7 +883,7 @@ static char* local_file_list(const char *path)
     int offset = 0;
     char *size_str = NULL;
     char *utf8 = NULL;
-    int i;
+    int i = -1;
     int iSnprintRet = -1;
     char digit[MAXIMAL_64BIT_UNSIGN_DEC + 1] = {0};
 
@@ -1087,7 +1087,7 @@ static const char *reponse_content_type(const char *file_name)
     };
 
     const char *ext = NULL;
-    int i;
+    int i = -1;
 
     if (!file_name)
     {
@@ -1148,7 +1148,7 @@ static void response_home_page(event_t *ev, const char *path)
 
     char header[BUFFER_UNIT] = { 0 };
     event_data_t* ev_data = NULL;
-    int length;
+    int length = -1;
     char *file_list = NULL;
     char *html = NULL;
     event_t ev_ = {0};
@@ -1186,8 +1186,8 @@ static void response_send_file_page(event_t *ev, const char *file_name)
 {
     char header[BUFFER_UNIT] = { 0 };
     FILE* fp = NULL;
-    int total;
-    int len;
+    int total = -1;
+    int len = -1;
     event_data_t* ev_data = NULL;
     event_t ev_ = {0};
     int iSnprintRet = -1;

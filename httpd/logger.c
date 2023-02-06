@@ -72,8 +72,8 @@ static void log_print(log_level_t lv, const char *msg)
     const char *file_name = NULL;
     FILE* fp = NULL;
     char datetime[30] = {0};
-    time_t t;
-    struct tm *p;
+    time_t t = 0;
+    struct tm *p = NULL;
     t = time(NULL) + 8 * 3600;
     p = gmtime(&t);
 

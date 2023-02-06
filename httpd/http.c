@@ -993,7 +993,7 @@ static char* local_file_list(char *path)
 
             escape_html = html_escape(utf8);
             if (NULL == escape_html) {
-                log_error("{%s:%d} fail.", __FUNCTION__, __LINE__);
+                log_error("{%s:%d} html_escape fail.", __FUNCTION__, __LINE__);
                 FindClose(hFind);
                 free(result);
                 LOOP_FREE
@@ -1001,7 +1001,7 @@ static char* local_file_list(char *path)
             }
             escape_uri = url_escape(utf8);
             if (NULL == escape_uri) {
-                log_error("{%s:%d} fail.", __FUNCTION__, __LINE__);
+                log_error("{%s:%d} url_escape fail.", __FUNCTION__, __LINE__);
                 FindClose(hFind);
                 free(result);
                 LOOP_FREE

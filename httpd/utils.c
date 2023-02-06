@@ -221,7 +221,7 @@ void mySleep(int sleepMs)
 ///////////////////////////////////////////////////////////////////////////////
 // https://stackoverflow.com/questions/27303062/strstr-function-like-that-ignores-upper-or-lower-case
 #include <ctype.h>
-char* stristr( const char* str1, const char* str2 )
+const char* stristr( const char* str1, const char* str2 )
 {
     const char* p1 = str1 ;
     const char* p2 = str2 ;
@@ -260,7 +260,7 @@ char* stristr( const char* str1, const char* str2 )
         p1++ ;
     }
 
-    return *p2 == 0 ? (char*)r : 0 ;
+    return *p2 == 0 ? r : 0 ;
 }
 //
 ////

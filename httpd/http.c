@@ -109,7 +109,7 @@ static void read_callback(event_t *ev)
     request_header_t header;
     int   i;
     int   content_length = 0;
-    char *temp = NULL;
+    const char *temp = NULL;
     char  file_path[MAX_PATH2] = {0};
     int iSnprintRet = -1;
     int iTmp = 0;
@@ -718,12 +718,14 @@ static uint8_t ishex(uint8_t x)
 
 static int reset_filename_from_formdata(event_t *ev, char **formdata, int size)
 {
-    char *file_name = NULL;
+    const char *file_name = NULL;
     char *p         = NULL;
     int   i         = 0;
     int   found     = 0;
     char *anis      = NULL;
     int iSnprintRet = -1;
+    const char* tmp = NULL;
+    char file_name2[MAX_PATH2] = {0};
 
     // find "\r\n\r\n"
     p = *formdata;
@@ -745,9 +747,13 @@ static int reset_filename_from_formdata(event_t *ev, char **formdata, int size)
     if (!file_name)
         return 0;
     file_name += strlen("filename=\"");
-    *strstr(file_name, "\"") = 0;
+    tmp = stristr(file_name, "\"");
+    if ( NULL == tmp ) tmp = file_name + strlen(file_name);
+    memset( file_name2, 0, sizeof(file_name2) );
+    i = strncpy_s( file_name2, sizeof(file_name2), file_name, tmp - file_name );
+    ASSERT( 0 == i );
 
-    anis = utf8_to_ansi(file_name);
+    anis = utf8_to_ansi(file_name2);
 
     // IE browser: remove client file path
     p = anis;

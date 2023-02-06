@@ -15,7 +15,7 @@ const char* file_ext(const char* file_name);
 charp2free_t root_path();
 char* uint32_to_str(uint32_t n);
 void mySleep(int sleepMs);
-char* stristr( const char* str1, const char* str2 );
+const char* stristr( const char* str1, const char* str2 );
 ULONGLONG filesize64( DWORD nFileSizeHigh, DWORD nFileSizeLow );
 charp2free_t html_escape(const char* s);
 charp2free_t url_escape(const char* s);

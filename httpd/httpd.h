@@ -15,7 +15,7 @@
 #ifdef _DEBUG
 #define ASSERT(x)   assert(x)
 #else
-#define ASSERT(x)   if (!(x)) log_error("{%s:%d} ASSERT("#x") failed.", __FUNCTION__, __LINE__);
+#define ASSERT(x)   if (!(x)) { log_error("{%s:%d} ASSERT("#x") failed.", __FUNCTION__, __LINE__); exit(1); }
 #endif
 
 #include <stdio.h>

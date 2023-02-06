@@ -883,10 +883,14 @@ static char* local_file_list(char *path)
     int iSnprintRet = -1;
     char digit[MAXIMAL_64BIT_UNSIGN_DEC + 1] = {0};
 
+    {
     wchar_t* pathW = ansi_to_unicode(path); 
-    assert( NULL != pathW );
-    swprintf(filter, _countof(filter), L"%s*", pathW );
+    ASSERT (NULL != pathW);
+    i = swprintf(filter, _countof(filter), L"%s*", pathW );
+    ASSERT( 0 < i );
 	free(pathW);
+    }
+
     // list directory
 	memset( &FindFileData, 0, sizeof(FindFileData) );
     hFind = FindFirstFileW(filter, &FindFileData);
@@ -962,7 +966,7 @@ static char* local_file_list(char *path)
 
             size_t size_str_len = 0;
 
-            assert(NULL == utf8 &&  NULL == ansi &&  NULL == escape_html &&  NULL == escape_uri);
+            ASSERT(NULL == utf8 &&  NULL == ansi &&  NULL == escape_html &&  NULL == escape_uri);
             if (!result)
             {
                 result = (char*)malloc(size);

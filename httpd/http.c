@@ -497,7 +497,7 @@ static int parse_request_header(char *data, request_header_t *header)
 #define next_header_word(x) while (*x && *x != ' ' && *x != ':' && *(x + 1) && *x != CR && *(x + 1) != LF) x++; *x=0;
 
     char *p = data;
-    char *q;
+    char *q = NULL;
     int idx = 0;
 
     memset(header, 0, sizeof(request_header_t));
@@ -668,7 +668,7 @@ static Bool_t uri_decode(char* uri)
     char *o = NULL;
     char *s = uri;
     const char *end = uri + strlen(uri);
-    int c;
+    int c = -1;
     int iSnprintRet = -1;
 
 
@@ -790,8 +790,8 @@ static int parse_boundary(event_t *ev, char *data, int size, char **ptr)
     char first_boundary[BOUNDARY_MAX_LEN]  = { 0 };
     char middle_boundary[BOUNDARY_MAX_LEN] = { 0 };
     char last_boundary[BOUNDARY_MAX_LEN]   = { 0 };
-    int  first_len, middle_len, last_len;
-    int i;
+    int  first_len = -1, middle_len = -1, last_len = -1;
+    int i = -1;
 
     sprintf(first_boundary, "--%s\r\n", ev->data->boundary);      //------WebKitFormBoundaryOG3Viw9MEZcexbvT\r\n
     sprintf(middle_boundary, "\r\n--%s\r\n", ev->data->boundary);   //\r\n------WebKitFormBoundaryOG3Viw9MEZcexbvT\r\n

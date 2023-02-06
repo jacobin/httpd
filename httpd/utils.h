@@ -3,17 +3,6 @@
 
 #define MAX_PATH2 (2*MAX_PATH)
 
-typedef char* charp2free_t;
-typedef wchar_t* wcharp2free_t;
-
-typedef int index_t;
-typedef int Bool_t;
-#define False 0
-#define True 1
-
-#define MAXIMAL_64BIT_UNSIGN_DEC 20
-#define MAXIMAL_32BIT_UNSIGN_DEC 10
-
 wcharp2free_t ansi_to_unicode(const char* str);
 charp2free_t unicode_to_ansi(const wchar_t* str);
 wcharp2free_t utf8_to_unicode(const char* str);

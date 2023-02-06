@@ -22,4 +22,12 @@ typedef enum
     DISC
 } ret_code_t;
 
+typedef char* charp2free_t;
+typedef wchar_t* wcharp2free_t;
+
+typedef int index_t;
+typedef int Bool_t;
+#define False 0
+#define True 1
+
 #endif

@@ -6,6 +6,10 @@
 #define CR                  (u_char) '\r'
 #define CRLF                "\r\n"
 
+
+#define MAXIMAL_64BIT_UNSIGN_DEC 20
+#define MAXIMAL_32BIT_UNSIGN_DEC 10
+
 typedef struct  
 {
     char                *key;

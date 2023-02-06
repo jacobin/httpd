@@ -57,7 +57,7 @@ static void send_response(event_t *ev, const char* title, const char *status);
 
 int http_startup(uint16_t *port)
 {
-    SOCKET fd;
+    SOCKET fd = INVALID_SOCKET;
     event_t ev = {0};
 
     log_info("{%s:%d} Http server start...", __FUNCTION__, __LINE__);
@@ -82,7 +82,7 @@ int http_startup(uint16_t *port)
 
 static void accept_callback(event_t *ev)
 {
-    SOCKET fd;
+    SOCKET fd = INVALID_SOCKET;
     struct in_addr addr;
     event_t ev_ = {0};
 
@@ -105,9 +105,9 @@ static void accept_callback(event_t *ev)
 static void read_callback(event_t *ev)
 {
     char *buf = NULL;
-    int   size;
+    int   size = -1;
     request_header_t header;
-    int   i;
+    int   i = -1;
     int   content_length = 0;
     const char *temp = NULL;
     char  file_path[MAX_PATH2] = {0};
@@ -300,10 +300,10 @@ static void write_callback(event_t *ev)
 
 static int read_request_header(event_t *ev, char **buf, int *size)
 {
-    char c;
+    char c = '\xFF';
     const int len = 1;
     int idx = 0;
-    int ret;
+    int ret = -1;
 
     while (TRUE)
     {

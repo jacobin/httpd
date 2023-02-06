@@ -587,3 +587,13 @@ charp2free_t html_escape(const char* s)
 /////////////////////////////////////////////////////////////////////////////}}
 /////////////////////////////////////////////////////////////////////////////}}
 /////////////////////////////////////////////////////////////////////////////}}
+
+// https://stackoverflow.com/questions/43354488/c-formatted-string-how-to-add-leading-zeros-to-string-value-using-sprintf
+// prepend "0" as needed resulting in a string of _minimal_ width.
+errno_t prepend_chars(char *dest, int destsize, const char *src, unsigned minimal_width, char c)
+{
+    const size_t len = strlen(src);
+    const size_t chars = (minimal_width < len) ? 0 : (minimal_width-len);
+    memset(dest, c, chars);
+    return strcpy_s(dest + chars, destsize - chars, src);
+}

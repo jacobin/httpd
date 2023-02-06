@@ -954,6 +954,8 @@ static char* local_file_list(char *path)
             charp2free_t escape_uri = NULL;
             charp2free_t ansi = NULL;
 
+            size_t size_str_len = 0;
+
             if (!result)
             {
                 result = (char*)malloc(size);
@@ -1010,9 +1012,10 @@ static char* local_file_list(char *path)
                 line[line_length++] = 0x20;
             }
             size_str = _ui64toa(filesize64(FindFileData.nFileSizeHigh, FindFileData.nFileSizeLow), digit, 10);
-            iSnprintRet = memcpy_s(line+line_length, sizeof(line)-line_length, size_str, strlen(size_str));
+            iSnprintRet = prepend_chars(line+line_length, sizeof(line)-line_length, size_str, MAXIMAL_32BIT_UNSIGN_DEC, '\x20');
             ASSERT( 0 == iSnprintRet );
-            line_length += strlen(size_str);
+            size_str_len = strlen(size_str);
+            line_length += ( MAXIMAL_32BIT_UNSIGN_DEC < size_str_len ? size_str_len : MAXIMAL_32BIT_UNSIGN_DEC );
             line[line_length++] = CR;
             line[line_length++] = LF;
             line[line_length] = 0;

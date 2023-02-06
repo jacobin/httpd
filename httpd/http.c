@@ -859,6 +859,12 @@ static int parse_boundary(event_t *ev, char *data, int size, char **ptr)
     return 0;
 }
 
+#define LOOP_FREE \
+    free(utf8); utf8=NULL;\
+    free(ansi); ansi=NULL;\
+    free(escape_html); escape_html=NULL;\
+    free(escape_uri); escape_uri=NULL;
+
 static char* local_file_list(char *path)
 {
     const char* format_dir = "<a href=\"%s/\">%s/</a>" CRLF;
@@ -956,6 +962,7 @@ static char* local_file_list(char *path)
 
             size_t size_str_len = 0;
 
+            assert(NULL == utf8 &&  NULL == ansi &&  NULL == escape_html &&  NULL == escape_uri);
             if (!result)
             {
                 result = (char*)malloc(size);
@@ -980,7 +987,7 @@ static char* local_file_list(char *path)
                 log_error("{%s:%d} unicode_to_ansi fail.", __FUNCTION__, __LINE__);                
                 FindClose(hFind);
                 free(result);
-                free(utf8);
+                LOOP_FREE
                 return NULL;
             }
 
@@ -989,8 +996,7 @@ static char* local_file_list(char *path)
                 log_error("{%s:%d} fail.", __FUNCTION__, __LINE__);
                 FindClose(hFind);
                 free(result);
-                free(utf8);
-                free(ansi);
+                LOOP_FREE
                 return NULL;
             }
             escape_uri = url_escape(utf8);
@@ -998,9 +1004,7 @@ static char* local_file_list(char *path)
                 log_error("{%s:%d} fail.", __FUNCTION__, __LINE__);
                 FindClose(hFind);
                 free(result);
-                free(utf8);
-                free(ansi);
-                free(escape_html);
+                LOOP_FREE
                 return NULL;
             }
 
@@ -1029,20 +1033,14 @@ static char* local_file_list(char *path)
                     log_error("{%s:%d} realloc fail.", __FUNCTION__, __LINE__);
                     FindClose(hFind);
                     free(result);
-                    free(utf8);
-                    free(ansi);
-                    free(escape_html);
-                    free(escape_uri);
+                    LOOP_FREE
                     return NULL;
                 }
             }
             iSnprintRet = memcpy_s(result+offset, size-offset, line, line_length);
             ASSERT( 0 == iSnprintRet );
             offset += line_length;
-            free(utf8);
-            free(ansi);
-            free(escape_html);
-            free(escape_uri);
+            LOOP_FREE
         }
 		memset( &FindFileData, 0, sizeof(FindFileData) );
     } while (FindNextFileW(hFind, &FindFileData));

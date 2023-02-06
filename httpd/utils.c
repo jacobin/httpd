@@ -443,7 +443,9 @@ charp2free_t url_escape(const char* s)
         const char c = s[i];
         const char* hex = url_escape2(c);
         if (NULL != hex) {
-            strcpy(&result[used], hex);
+	        int iSnprintRet = -1;
+            iSnprintRet = strcpy_s(&result[used], result_size-used,hex);
+            ASSERT( 0 == iSnprintRet );
             used += 3;
         }
         else {
@@ -554,7 +556,8 @@ charp2free_t html_escape(const char* s)
             int iSnprintRet = -1;
             iSnprintRet = sprintf_s(s6, sizeof(s6), "&#%d;", c);
             ASSERT( 0 <= iSnprintRet );
-            strcpy(&result[used], s6);
+            iSnprintRet = strcpy_s(&result[used], result_size-used, s6);
+            ASSERT( 0 == iSnprintRet );
             used += strlen(s6);
         }
         else {

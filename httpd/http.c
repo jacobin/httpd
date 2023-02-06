@@ -942,6 +942,7 @@ static char* local_file_list(const char *path)
     } while (FindNextFileW(hFind, &FindFileData));
     FindClose(hFind);
 
+    utf8 = NULL;
     // list files
 	memset( &FindFileData, 0, sizeof(FindFileData) );
     hFind = FindFirstFileW(filter, &FindFileData);

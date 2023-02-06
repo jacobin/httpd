@@ -1,4 +1,4 @@
-﻿#include "httpd.h"
+#include "httpd.h"
 
 
 static void log_print(log_level_t lv, const char *msg);

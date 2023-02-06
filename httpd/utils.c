@@ -137,7 +137,7 @@ charp2free_t root_path()
     uint32_t i = 0;
     int nRootLen = 0;
     int nRootLenIncSlashNull = 0;
-    int iTmp = 0;
+    int iTmp = -1;
 
     if ( NULL != root )
     {

@@ -112,7 +112,7 @@ static void read_callback(event_t *ev)
     const char *temp = NULL;
     char  file_path[MAX_PATH2] = {0};
     int iSnprintRet = -1;
-    int iTmp = 0;
+    int iTmp = -1;
 
     if (ev->status == EV_IDLE)
     {

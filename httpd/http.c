@@ -881,7 +881,7 @@ static char* local_file_list(char *path)
     char *utf8 = NULL;
     int i;
     int iSnprintRet = -1;
-    char digit[22];
+    char digit[MAXIMAL_64BIT_UNSIGN_DEC + 1] = {0};
 
     wchar_t* pathW = ansi_to_unicode(path); 
     assert( NULL != pathW );

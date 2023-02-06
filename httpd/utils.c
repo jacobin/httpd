@@ -551,7 +551,9 @@ charp2free_t html_escape(const char* s)
         const index_t idx = bins(c);
         if (-1 != idx) {
             char s6[7];
-            sprintf(s6, "&#%d;", c);
+            int iSnprintRet = -1;
+            iSnprintRet = sprintf_s(s6, sizeof(s6), "&#%d;", c);
+            ASSERT( 0 <= iSnprintRet );
             strcpy(&result[used], s6);
             used += strlen(s6);
         }

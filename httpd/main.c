@@ -12,12 +12,13 @@ LONG __stdcall crush_callback(struct _EXCEPTION_POINTERS* ep)
     char fname[MAX_PATH2] = {0};
     MINIDUMP_EXCEPTION_INFORMATION    exceptioninfo;
     HANDLE hFile = INVALID_HANDLE_VALUE;
+    int iSnprintRet = -1;
 
     t = time(NULL) + 8 * 3600;
     p = gmtime(&t);
 
-    sprintf(fname, "dump_%d-%d-%d_%d_%d_%d.DMP", 1900+p->tm_year, 1+p->tm_mon, p->tm_mday, (p->tm_hour)%24, p->tm_min, p->tm_sec);
-
+    iSnprintRet = sprintf_s(fname, sizeof(fname), "dump_%d-%d-%d_%d_%d_%d.DMP", 1900+p->tm_year, 1+p->tm_mon, p->tm_mday, (p->tm_hour)%24, p->tm_min, p->tm_sec);
+    ASSERT( 0 <= iSnprintRet );
     hFile = CreateFileA(fname,
         GENERIC_WRITE,
         0,

@@ -792,10 +792,12 @@ static int parse_boundary(event_t *ev, char *data, int size, char **ptr)
     char last_boundary[BOUNDARY_MAX_LEN]   = { 0 };
     int  first_len = -1, middle_len = -1, last_len = -1;
     int i = -1;
+    int iSnprintRet1 = -1, iSnprintRet2 = -1, iSnprintRet3 = -1;
 
-    sprintf(first_boundary, "--%s\r\n", ev->data->boundary);      //------WebKitFormBoundaryOG3Viw9MEZcexbvT\r\n
-    sprintf(middle_boundary, "\r\n--%s\r\n", ev->data->boundary);   //\r\n------WebKitFormBoundaryOG3Viw9MEZcexbvT\r\n
-    sprintf(last_boundary, "\r\n--%s--\r\n", ev->data->boundary); //\r\n------WebKitFormBoundaryOG3Viw9MEZcexbvT--\r\n
+    iSnprintRet1 = sprintf_s(first_boundary, sizeof(first_boundary), "--%s\r\n", ev->data->boundary);      //------WebKitFormBoundaryOG3Viw9MEZcexbvT\r\n
+    iSnprintRet2 = sprintf_s(middle_boundary, sizeof(middle_boundary), "\r\n--%s\r\n", ev->data->boundary);   //\r\n------WebKitFormBoundaryOG3Viw9MEZcexbvT\r\n
+    iSnprintRet3 = sprintf_s(last_boundary, sizeof(last_boundary), "\r\n--%s--\r\n", ev->data->boundary); //\r\n------WebKitFormBoundaryOG3Viw9MEZcexbvT--\r\n
+    ASSERT( 0 <= iSnprintRet1 && 0 <= iSnprintRet2 && 0 <= iSnprintRet3 );
     first_len  = strlen(first_boundary);
     middle_len = strlen(middle_boundary);
     last_len   = strlen(last_boundary);
@@ -924,7 +926,8 @@ static char* local_file_list(const char *path)
                 }
             }
             utf8 = unicode_to_utf8(FindFileData.cFileName);
-            sprintf(line, format_dir, utf8, utf8);
+            iSnprintRet = sprintf_s(line, sizeof(line), format_dir, utf8, utf8);
+            ASSERT(0 <= iSnprintRet );
             line_length = strlen(line);
             line[line_length] = 0;
             if (offset+line_length > size-1)
@@ -1023,7 +1026,9 @@ static char* local_file_list(const char *path)
                 return NULL;
             }
 
-            sprintf(line, format_file, escape_uri, escape_html);
+            iSnprintRet = sprintf_s(line, sizeof(line), format_file, escape_uri, escape_html);
+            ASSERT(0 <= iSnprintRet );
+
             line_length = strlen(line);
             line[line_length++] = 0x20;
             for (i=strlen(ansi); i<60; i++)
@@ -1160,6 +1165,8 @@ static void response_home_page(event_t *ev, const char *path)
     event_t ev_ = {0};
     char *utf8 = NULL;
 
+    int iSnprintRet = -1;
+
     utf8 = ansi_to_utf8(path);
     file_list = local_file_list(path);
     if (!file_list)
@@ -1172,10 +1179,12 @@ static void response_home_page(event_t *ev, const char *path)
         log_error("{%s:%d} malloc fail.", __FUNCTION__, __LINE__);
         return;
     }
-    sprintf(html, html_format, utf8, utf8, utf8, file_list);
+    iSnprintRet = sprintf_s(html, length, html_format, utf8, utf8, utf8, file_list);
+    ASSERT( 0 <= iSnprintRet );
     free(utf8);
     free(file_list);
-    sprintf(header, response_header_format(), "200 OK", reponse_content_type(NULL), strlen(html));
+    iSnprintRet = sprintf_s(header, sizeof(header), response_header_format(), "200 OK", reponse_content_type(NULL), strlen(html));
+    ASSERT( 0 <= iSnprintRet );
     ev_data = create_event_data(header, html);
     free(html);
 
@@ -1212,7 +1221,8 @@ static void response_send_file_page(event_t *ev, const char *file_name)
         total = ftell(fp);
         fseek(fp, 0, SEEK_SET);
         len = total > BUFFER_UNIT ? BUFFER_UNIT : total;
-        sprintf(header, response_header_format(), "200 OK", reponse_content_type(file_name), total);
+        iSnprintRet = sprintf_s(header, sizeof(header), response_header_format(), "200 OK", reponse_content_type(file_name), total);
+        ASSERT( 0 <= iSnprintRet );
         ev_data = create_event_data_fp(header, fp, len, total);
         iSnprintRet = memcpy_s(ev_data->file, sizeof(ev_data->file), file_name, strlen(file_name));
         ASSERT( 0 == iSnprintRet );
@@ -1280,9 +1290,12 @@ static void send_response(event_t *ev, const char *title, const char *status)
     char body[BUFFER_UNIT]   = { 0 };
     event_data_t* ev_data = NULL;
     event_t ev_ = {0};
+    int iSnprintRet = -1;
 
-    sprintf(body, response_body_format(), title, title);
-    sprintf(header, response_header_format(), status ? status : title, reponse_content_type(NULL), strlen(body));
+    iSnprintRet = sprintf_s(body, sizeof(body), response_body_format(), title, title);
+    ASSERT( 0<=iSnprintRet );
+    iSnprintRet = sprintf_s(header, sizeof(header), response_header_format(), status ? status : title, reponse_content_type(NULL), strlen(body));
+    ASSERT( 0<=iSnprintRet );
     ev_data = create_event_data(header, body);
 
     ev_.fd = ev->fd;

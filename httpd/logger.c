@@ -74,6 +74,8 @@ static void log_print(log_level_t lv, const char *msg)
     char datetime[30] = {0};
     time_t t = 0;
     struct tm *p = NULL;
+    int iSnprintRet = -1;
+
     t = time(NULL) + 8 * 3600;
     p = gmtime(&t);
 
@@ -93,8 +95,8 @@ static void log_print(log_level_t lv, const char *msg)
         break;
     }
 
-    sprintf(datetime, "%d-%02d-%02d_%02d:%02d:%02d", 1900+p->tm_year, 1+p->tm_mon, p->tm_mday, (p->tm_hour)%24, p->tm_min, p->tm_sec);
-
+    iSnprintRet = sprintf_s(datetime, sizeof(datetime), "%d-%02d-%02d_%02d:%02d:%02d", 1900+p->tm_year, 1+p->tm_mon, p->tm_mday, (p->tm_hour)%24, p->tm_min, p->tm_sec);
+    ASSERT( 0 <= iSnprintRet );
     if (SAVE_FILE)
     {
         // write to file

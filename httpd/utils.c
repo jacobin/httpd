@@ -2,7 +2,7 @@
 #include "logger.h"
 #include "utils.h"
 
-wcharp2free_t ansi_to_unicode(char* str)
+wcharp2free_t ansi_to_unicode(const char* str)
 {
     wchar_t* result;
     int len = MultiByteToWideChar(CP_ACP, 0, str, -1, NULL, 0);
@@ -17,7 +17,7 @@ wcharp2free_t ansi_to_unicode(char* str)
     return result;
 }
 
-charp2free_t unicode_to_ansi(wchar_t* str)
+charp2free_t unicode_to_ansi(const wchar_t* str)
 {
     char* result;
     int len = WideCharToMultiByte(CP_ACP, 0, str, -1, NULL, 0, NULL, NULL);
@@ -32,7 +32,7 @@ charp2free_t unicode_to_ansi(wchar_t* str)
     return result;
 }
 
-wcharp2free_t utf8_to_unicode(char* str)
+wcharp2free_t utf8_to_unicode(const char* str)
 {
     wchar_t* result;
     int len = MultiByteToWideChar(CP_UTF8, 0, str, -1, NULL, 0);
@@ -47,7 +47,7 @@ wcharp2free_t utf8_to_unicode(char* str)
     return result;
 }
 
-charp2free_t unicode_to_utf8(wchar_t* str)
+charp2free_t unicode_to_utf8(const wchar_t* str)
 {
     char* result;
     int len = WideCharToMultiByte(CP_UTF8, 0, str, -1, NULL, 0, NULL, NULL);
@@ -62,7 +62,7 @@ charp2free_t unicode_to_utf8(wchar_t* str)
     return result;
 }
 
-charp2free_t utf8_to_ansi(char* str)
+charp2free_t utf8_to_ansi(const char* str)
 {
     char* ansi = NULL;
     wchar_t* uni = utf8_to_unicode(str);
@@ -80,7 +80,7 @@ charp2free_t utf8_to_ansi(char* str)
     return ansi;
 }
 
-charp2free_t ansi_to_utf8(char* str)
+charp2free_t ansi_to_utf8(const char* str)
 {
     char* utf8 = NULL;
     wchar_t* uni = ansi_to_unicode(str);
@@ -98,7 +98,7 @@ charp2free_t ansi_to_utf8(char* str)
     return utf8;
 }
 
-int file_exist(char *file_name)
+int file_exist(const char *file_name)
 {
     FILE* fp = NULL;
     fp = fopen(file_name, "rb");
@@ -109,14 +109,14 @@ int file_exist(char *file_name)
     return fp != NULL;
 }
 
-int remove_file(char *file_name)
+int remove_file(const char *file_name)
 {
     return DeleteFileA(file_name);
 }
 
-char* file_ext(char* file_name)
+const char* file_ext(const char* file_name)
 {
-    char *ext = NULL;
+    const char *ext = NULL;
     int i;
 
     for (i=strlen(file_name)-1; i>=0; i--)

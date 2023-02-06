@@ -35,21 +35,21 @@ static event_data_t *create_event_data_fp(const char *header, FILE *fp, int read
 static void  release_event_data(event_t *ev);
 static Bool_t  uri_decode(char* uri);
 static uint8_t ishex(uint8_t x);
-static char *local_file_list(char *path);
+static char *local_file_list(const char *path);
 static int   reset_filename_from_formdata(event_t *ev, char **formdata, int size);
 static int   parse_boundary(event_t *ev, char *data, int size, char **ptr);
 
-static const char *reponse_content_type(char *file_name);
+static const char *reponse_content_type(const char *file_name);
 static const char *response_header_format();
 static const char *response_body_format();
-static void response_home_page(event_t *ev, char *path);
+static void response_home_page(event_t *ev, const char *path);
 static void response_upload_page(event_t *ev, int result);
-static void response_send_file_page(event_t *ev, char *file_name);
+static void response_send_file_page(event_t *ev, const char *file_name);
 static void response_http_400_page(event_t *ev);
 static void response_http_404_page(event_t *ev);
 static void response_http_500_page(event_t *ev);
 static void response_http_501_page(event_t *ev);
-static void send_response(event_t *ev, char* title, char *status);
+static void send_response(event_t *ev, const char* title, const char *status);
 
 int http_startup(uint16_t *port)
 {
@@ -865,7 +865,7 @@ static int parse_boundary(event_t *ev, char *data, int size, char **ptr)
     free(escape_html); escape_html=NULL;\
     free(escape_uri); escape_uri=NULL;
 
-static char* local_file_list(char *path)
+static char* local_file_list(const char *path)
 {
     const char* format_dir = "<a href=\"%s/\">%s/</a>" CRLF;
     const char* format_file = "<a href=\"%s\">%s</a>";
@@ -1054,7 +1054,7 @@ static char* local_file_list(char *path)
     return result;
 }
 
-static const char *reponse_content_type(char *file_name)
+static const char *reponse_content_type(const char *file_name)
 {
     const request_fields_t content_type[] =     {
         { "html",   "text/html"                 },
@@ -1081,7 +1081,7 @@ static const char *reponse_content_type(char *file_name)
         { "mp3",    "audio/mp3"                 }
     };
 
-    char *ext = NULL;
+    const char *ext = NULL;
     int i;
 
     if (!file_name)
@@ -1125,7 +1125,7 @@ static const char *response_body_format()
     return http_body_format;
 }
 
-static void response_home_page(event_t *ev, char *path)
+static void response_home_page(event_t *ev, const char *path)
 {
     const char *html_format = 
         "<html>" CRLF
@@ -1177,7 +1177,7 @@ static void response_home_page(event_t *ev, char *path)
     event_add(&ev_);
 }
 
-static void response_send_file_page(event_t *ev, char *file_name)
+static void response_send_file_page(event_t *ev, const char *file_name)
 {
     char header[BUFFER_UNIT] = { 0 };
     FILE* fp = NULL;
@@ -1263,7 +1263,7 @@ static void response_http_501_page(event_t *ev)
     send_response(ev, "501 Not Implemented", NULL);
 }
 
-static void send_response(event_t *ev, char *title, char *status)
+static void send_response(event_t *ev, const char *title, const char *status)
 {
     char header[BUFFER_UNIT] = { 0 };
     char body[BUFFER_UNIT]   = { 0 };

@@ -14,15 +14,15 @@ typedef int Bool_t;
 #define MAXIMAL_64BIT_UNSIGN_DEC 20
 #define MAXIMAL_32BIT_UNSIGN_DEC 10
 
-wcharp2free_t ansi_to_unicode(char* str);
-charp2free_t unicode_to_ansi(wchar_t* str);
-wcharp2free_t utf8_to_unicode(char* str);
-charp2free_t unicode_to_utf8(wchar_t* str);
-charp2free_t utf8_to_ansi(char* str);
-charp2free_t ansi_to_utf8(char* str);
-int file_exist(char *file_name);
-int remove_file(char *file_name);
-char* file_ext(char* file_name);
+wcharp2free_t ansi_to_unicode(const char* str);
+charp2free_t unicode_to_ansi(const wchar_t* str);
+wcharp2free_t utf8_to_unicode(const char* str);
+charp2free_t unicode_to_utf8(const wchar_t* str);
+charp2free_t utf8_to_ansi(const char* str);
+charp2free_t ansi_to_utf8(const char* str);
+int file_exist(const char *file_name);
+int remove_file(const char *file_name);
+const char* file_ext(const char* file_name);
 charp2free_t root_path();
 char* uint32_to_str(uint32_t n);
 void mySleep(int sleepMs);

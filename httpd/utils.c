@@ -140,9 +140,10 @@ const char* file_ext(const char* file_name)
     return ext;
 }
 
+char* root = NULL;
+
 char* root_path()
 {
-    static char* root=NULL;
     const int nRootLenBudget = MAX_PATH2;
     uint32_t i = 0;
     int nRootLen = 0;

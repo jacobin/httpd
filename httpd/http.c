@@ -506,7 +506,7 @@ static int parse_request_header(char *data, request_header_t *header)
 {
 #define move_next_line(x)   while (*x && *(x + 1) && *x != CR && *(x + 1) != LF) x++;
 #define next_header_line(x) while (*x && *(x + 1) && *x != CR && *(x + 1) != LF) x++; *x=0;
-#define next_header_word(x) while (*x && *x != ' ' && *x != ':' && *(x + 1) && *x != CR && *(x + 1) != LF) x++; *x=0;
+#define next_header_word(x) while (*x && *x != '\x20' && *x != ':' && *(x + 1) && *x != CR && *(x + 1) != LF) x++; *x=0;
 
     char *p = data;
     char *q = NULL;
@@ -555,7 +555,7 @@ static int parse_request_header(char *data, request_header_t *header)
         next_header_word(p);
         header->fields[idx].key = data;
         data = ++p;
-        if (*data == ' ')
+        if (*data == '\x20')
         {
             data++;
             p++;
@@ -708,7 +708,7 @@ static Bool_t uri_decode(char* uri)
         c = *s++;
         if (c == '+')
         {
-            c = ' ';
+            c = '\x20';
         }
         else if (c == '%' 
             && (!ishex(*s++) || !ishex(*s++) || !sscanf(s - 2, "%2x", &c)))

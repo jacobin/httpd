@@ -6,6 +6,7 @@ wcharp2free_t ansi_to_unicode(const char* str)
 {
     wchar_t* result = NULL;
     int len = MultiByteToWideChar(CP_ACP, 0, str, -1, NULL, 0);
+    ASSERT(NULL!=str);
     result = (wchar_t*)malloc((len+1)*sizeof(wchar_t));
     if ( NULL == result )
     {
@@ -21,6 +22,7 @@ charp2free_t unicode_to_ansi(const wchar_t* str)
 {
     char* result = NULL;
     int len = WideCharToMultiByte(CP_ACP, 0, str, -1, NULL, 0, NULL, NULL);
+    ASSERT(NULL!=str);
     result = (char*)malloc((len+1)*sizeof(char));
     if ( NULL == result )
     {
@@ -36,6 +38,7 @@ wcharp2free_t utf8_to_unicode(const char* str)
 {
     wchar_t* result = NULL;
     int len = MultiByteToWideChar(CP_UTF8, 0, str, -1, NULL, 0);
+    ASSERT(NULL!=str);
     result = (wchar_t*)malloc((len+1)*sizeof(wchar_t));
     if ( NULL == result )
     {
@@ -51,6 +54,7 @@ charp2free_t unicode_to_utf8(const wchar_t* str)
 {
     char* result = NULL;
     int len = WideCharToMultiByte(CP_UTF8, 0, str, -1, NULL, 0, NULL, NULL);
+    ASSERT(NULL!=str);
     result =(char*)malloc((len+1)*sizeof(char));
     if ( NULL == result )
     {
@@ -66,6 +70,7 @@ charp2free_t utf8_to_ansi(const char* str)
 {
     char* ansi = NULL;
     wchar_t* uni = utf8_to_unicode(str);
+    ASSERT(NULL!=str);
     if ( NULL == uni )
     {
         return NULL;
@@ -84,6 +89,7 @@ charp2free_t ansi_to_utf8(const char* str)
 {
     char* utf8 = NULL;
     wchar_t* uni = ansi_to_unicode(str);
+    ASSERT(NULL!=str);
     if ( NULL == uni )
     {
         return NULL;
@@ -101,6 +107,7 @@ charp2free_t ansi_to_utf8(const char* str)
 int file_exist(const char *file_name)
 {
     FILE* fp = NULL;
+    ASSERT(NULL!=file_name);
     fp = fopen(file_name, "rb");
     if (fp)
     {
@@ -111,6 +118,7 @@ int file_exist(const char *file_name)
 
 int remove_file(const char *file_name)
 {
+    ASSERT(NULL!=file_name);
     return DeleteFileA(file_name);
 }
 
@@ -118,6 +126,8 @@ const char* file_ext(const char* file_name)
 {
     const char *ext = NULL;
     int i = -1;
+    
+    ASSERT(NULL!=file_name);
 
     for (i=strlen(file_name)-1; i>=0; i--)
     {
@@ -226,6 +236,8 @@ const char* stristr( const char* str1, const char* str2 )
     const char* p1 = str1 ;
     const char* p2 = str2 ;
     const char* r = *p2 == 0 ? str1 : 0 ;
+
+    ASSERT(NULL!=str1);
 
     while( *p1 != 0 && *p2 != 0 )
     {
@@ -355,7 +367,7 @@ static index_t url_escape3(const char escape_chars[][5], index_t endidx, char c,
     const index_t mid_idx = endidx / 2;
     const char mid_str0 = escape_chars[mid_idx][0];
 
-    assert(0 <= endidx);
+    ASSERT(0 <= endidx && NULL != b);
 
     if (0 == endidx)
     {
@@ -434,6 +446,7 @@ charp2free_t url_escape(const char* s)
     const size_t sLen = strlen(s);
 
     size_t result_size = sLen + 3;
+    ASSERT(NULL != s);
     result = (charp2free_t)malloc(result_size);
     if (NULL == result) {
         return NULL;
@@ -503,7 +516,7 @@ static index_t bins2(const char escape_chars[], index_t endidx, char c, Bool_t* 
     const index_t mid_idx = endidx / 2;
     const char mid_str0 = escape_chars[mid_idx];
 
-    assert(0 <= endidx);
+    ASSERT(0 <= endidx && NULL != b);
 
     if (0 == endidx) {
         *b = False;
@@ -543,6 +556,7 @@ charp2free_t html_escape(const char* s)
     const size_t sLen = strlen(s);
 
     size_t result_size = sLen + 1 + 5;
+    ASSERT(NULL != s);
     result = (charp2free_t)malloc(result_size);
     if (NULL == result) {
         return NULL;
@@ -599,6 +613,7 @@ errno_t prepend_chars(char *dest, int destsize, const char *src, unsigned minima
 {
     const size_t len = strlen(src);
     const size_t chars = (minimal_width < len) ? 0 : (minimal_width-len);
+    ASSERT(NULL != dest && NULL != src);
     memset(dest, c, chars);
     return strcpy_s(dest + chars, destsize - chars, src);
 }

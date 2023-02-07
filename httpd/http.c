@@ -60,6 +60,8 @@ int http_startup(uint16_t *port)
     SOCKET fd = INVALID_SOCKET;
     event_t ev = {0};
 
+    ASSERT( NULL != port );
+
     log_info("{%s:%d} Http server start...", __FUNCTION__, __LINE__);
     network_init();
     event_init();
@@ -85,6 +87,8 @@ static void accept_callback(event_t *ev)
     SOCKET fd = INVALID_SOCKET;
     struct in_addr addr;
     event_t ev_ = {0};
+
+    ASSERT( NULL != ev );
 
     if (SUCC == network_accept(ev->fd, &addr, &fd))
     {   
@@ -113,6 +117,8 @@ static void read_callback(event_t *ev)
     char  file_path[MAX_PATH2] = {0};
     int iSnprintRet = -1;
     int iTmp = -1;
+
+    ASSERT( NULL != ev );
 
     if (ev->status == EV_IDLE)
     {
@@ -276,6 +282,8 @@ static void read_callback(event_t *ev)
 
 static void write_callback(event_t *ev)
 {
+    ASSERT( NULL != ev );
+
     if (!ev->data)
         return;
 
@@ -304,6 +312,8 @@ static int read_request_header(event_t *ev, char **buf, int *size)
     const int len = 1;
     int idx = 0;
     int ret = -1;
+
+    ASSERT( NULL != ev && NULL != buf && NULL != size );
 
     while (TRUE)
     {
@@ -408,6 +418,8 @@ static void read_request_boundary(event_t *ev)
     char     compare_buff[BUFFER_UNIT*2 + 1] = {0};
     int iSnprintRet = -1;
 
+    ASSERT( NULL != ev );
+
     offset = ev->data->total - ev->data->offset > BUFFER_UNIT ? BUFFER_UNIT : ev->data->total - ev->data->offset;
     ret = network_read(ev->fd, buffer, offset);
     
@@ -500,6 +512,8 @@ static int parse_request_header(char *data, request_header_t *header)
     char *q = NULL;
     int idx = 0;
 
+    ASSERT( NULL != data && NULL != header );
+
     memset(header, 0, sizeof(request_header_t));
     // method
     next_header_word(p);
@@ -559,6 +573,8 @@ static int parse_request_header(char *data, request_header_t *header)
 
 static void release_request_header(request_header_t *header)
 {
+    ASSERT( NULL != header );
+
     if (header->uri)
     {
         free(header->uri);
@@ -571,6 +587,7 @@ static void release_request_header(request_header_t *header)
 
 static void release_event(event_t *ev)
 {
+    ASSERT( NULL != ev );
     closesocket(ev->fd);
     release_event_data(ev);
     event_del(ev);
@@ -583,6 +600,8 @@ static event_data_t *create_event_data(const char *header, const char *html)
     int html_length = 0;
     int data_length = 0;
     int iSnprintRet = -1;
+
+    ASSERT( NULL != header && NULL != html );
 
     if (header)
         header_length = strlen(header);
@@ -620,6 +639,8 @@ static event_data_t *create_event_data_fp(const char *header, FILE *fp, int read
     int data_length = 0;
     int iSnprintRet = -1;
 
+    ASSERT( /*NULL != header &&*/ NULL != fp && 0 < total_len );
+
     if (header)
         header_length = strlen(header);
 
@@ -649,6 +670,8 @@ static event_data_t *create_event_data_fp(const char *header, FILE *fp, int read
 
 static void release_event_data(event_t *ev)
 {
+    ASSERT( NULL != ev );
+
     if (ev->data)
     {
         if (ev->data->fp)
@@ -671,7 +694,7 @@ static Bool_t uri_decode(char* uri)
     int c = -1;
     int iSnprintRet = -1;
 
-
+    ASSERT( NULL != uri );
     ASSERT( *end == 0 );
     out = (char*)malloc(len+1);
     if (!out)
@@ -727,6 +750,7 @@ static int reset_filename_from_formdata(event_t *ev, char **formdata, int size)
     const char* tmp = NULL;
     char file_name2[MAX_PATH2] = {0};
 
+    ASSERT( NULL != ev && NULL != formdata && 0 < size );
     // find "\r\n\r\n"
     p = *formdata;
     for ( i = 0; i <= size-4; i++)
@@ -801,6 +825,8 @@ static int parse_boundary(event_t *ev, char *data, int size, char **ptr)
     first_len  = strlen(first_boundary);
     middle_len = strlen(middle_boundary);
     last_len   = strlen(last_boundary);
+
+    ASSERT( NULL != ev && NULL != data && 0 < size && NULL != ptr );
 
     ASSERT(size > first_len);
     ASSERT(size > middle_len);
@@ -895,6 +921,8 @@ static char* local_file_list(const char *path)
     int iSnprintRet = -1;
     char digit[MAXIMAL_64BIT_UNSIGN_DEC + 1] = {0};
 
+    ASSERT( NULL != path );
+
     {
     wchar_t* pathW = ansi_to_unicode(path); 
     ASSERT (NULL != pathW);
@@ -906,7 +934,7 @@ static char* local_file_list(const char *path)
     // list directory
 	memset( &FindFileData, 0, sizeof(FindFileData) );
     hFind = FindFirstFileW(filter, &FindFileData);
-    if (hFind == INVALID_HANDLE_VALUE) 
+    if (INVALID_HANDLE_VALUE == hFind)
     {
         log_error("{%s:%d} Invalid File Handle. GetLastError=%d", __FUNCTION__, __LINE__, GetLastError());
         return NULL;
@@ -1104,6 +1132,7 @@ static const char *reponse_content_type(const char *file_name)
     {
         return "text/html";
     }
+    ASSERT( NULL != file_name );
     ext = file_ext(file_name);
     if (ext)
     {
@@ -1167,6 +1196,8 @@ static void response_home_page(event_t *ev, const char *path)
 
     int iSnprintRet = -1;
 
+    ASSERT( NULL != ev && NULL != path );
+
     utf8 = ansi_to_utf8(path);
     file_list = local_file_list(path);
     if (!file_list)
@@ -1206,6 +1237,8 @@ static void response_send_file_page(event_t *ev, const char *file_name)
     event_data_t* ev_data = NULL;
     event_t ev_ = {0};
     int iSnprintRet = -1;
+
+    ASSERT( NULL != ev && NULL != file_name );
 
     fp = fopen(file_name, "rb");
     if (!fp)
@@ -1254,6 +1287,8 @@ end:
 
 static void response_upload_page(event_t *ev, int result)
 {
+    ASSERT( NULL != ev );
+
     if (result)
     {
         send_response(ev, "Upload completed", "200 OK");
@@ -1266,21 +1301,25 @@ static void response_upload_page(event_t *ev, int result)
 
 static void response_http_400_page(event_t *ev)
 {
+    ASSERT( NULL != ev );
     send_response(ev, "400 Bad Request", NULL);
 }
 
 static void response_http_404_page(event_t *ev)
 {
+    ASSERT( NULL != ev );
     send_response(ev, "404 Not Found", NULL);
 }
 
 static void response_http_500_page(event_t *ev)
 {
+    ASSERT( NULL != ev );
     send_response(ev, "500 Internal Server Error", NULL);
 }
 
 static void response_http_501_page(event_t *ev)
 {
+    ASSERT( NULL != ev );
     send_response(ev, "501 Not Implemented", NULL);
 }
 
@@ -1291,6 +1330,8 @@ static void send_response(event_t *ev, const char *title, const char *status)
     event_data_t* ev_data = NULL;
     event_t ev_ = {0};
     int iSnprintRet = -1;
+
+    ASSERT( NULL != ev && NULL != title );
 
     iSnprintRet = sprintf_s(body, sizeof(body), response_body_format(), title, title);
     ASSERT( 0<=iSnprintRet );

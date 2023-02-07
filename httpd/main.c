@@ -14,6 +14,8 @@ LONG __stdcall crush_callback(struct _EXCEPTION_POINTERS* ep)
     HANDLE hFile = INVALID_HANDLE_VALUE;
     int iSnprintRet = -1;
 
+    ASSERT(NULL != ep);
+
     t = time(NULL) + 8 * 3600;
     p = gmtime(&t);
 

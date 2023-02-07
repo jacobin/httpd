@@ -22,6 +22,8 @@ ret_code_t network_listen(uint16_t *port, SOCKET *fd)
     BOOL optval = TRUE;
     int ret = -1;
 
+    ASSERT(NULL != port && NULL != fd);
+
     *fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (INVALID_SOCKET == *fd)
     {
@@ -80,6 +82,8 @@ ret_code_t network_accept(SOCKET sfd, struct in_addr* addr, SOCKET *cfd)
     struct sockaddr_in addr_;
     int len = sizeof(addr_);
 
+    ASSERT(NULL != addr && NULL != cfd);
+
     *cfd = accept(sfd, (struct sockaddr*)&addr_, &len);
     if (INVALID_SOCKET == *cfd)
     {
@@ -95,6 +99,8 @@ ret_code_t network_read(SOCKET fd, char *buf, int32_t size)
 {
     int ret = 0;
     int offset = 0;
+
+    ASSERT(NULL != buf && 0 < size );
 
     while (TRUE)
     {
@@ -130,6 +136,7 @@ ret_code_t network_read(SOCKET fd, char *buf, int32_t size)
 
 ret_code_t network_write(SOCKET fd, void *buf, uint32_t size)
 {
+    ASSERT(NULL != buf && 0 < size );
     if (size != send(fd, buf, size, 0))
     {
         log_error("{%s:%d} send fail. socket=%d, WSAGetLastError=%d", __FUNCTION__, __LINE__, fd, WSAGetLastError());

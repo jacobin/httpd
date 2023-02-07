@@ -56,6 +56,9 @@ ret_code_t event_add(event_t *ev)
     struct rbnode_t *n = NULL;
     struct rbtree_t *t = NULL;
     fd_set          *s = NULL;
+
+    ASSERT(NULL != ev);
+
     if (ev->type & EV_READ)
     {
         t = &_read_evs;
@@ -102,6 +105,9 @@ ret_code_t event_add(event_t *ev)
 ret_code_t event_del(event_t *ev)
 {
     uint32_t fd = ev->fd;
+    
+    ASSERT(NULL != ev);
+
     event_del_by_fd(fd, &_read_evs, &_readfds);
     event_del_by_fd(fd, &_write_evs, &_writefds);
     event_del_by_fd(fd, &_except_evs, &_exceptfds);
@@ -166,6 +172,8 @@ ret_code_t event_dispatch()
 
 static int compare(struct rbnode_t *n1, struct rbnode_t *n2)
 {
+    ASSERT(NULL != n1 && NULL != n2);
+
     if (n1->ev->fd < n2->ev->fd)
         return -1;
     else if (n1->ev->fd > n2->ev->fd)
@@ -178,6 +186,8 @@ static struct rbnode_t *create_rbnode(event_t *ev)
 {
     struct rbnode_t *n = NULL;
     event_t *e = NULL;
+
+    ASSERT(NULL != ev);
 
     e = (event_t *)malloc(sizeof(event_t));
     if (!e)
@@ -203,6 +213,8 @@ static struct rbnode_t *find_rbnode(uint32_t fd, struct rbtree_t *t)
     struct rbnode_t k = { 0 };
     struct event_t  e = { 0 };
 
+    ASSERT(NULL != t);
+
     e.fd = fd;
     k.ev = &e;
     return RB_FIND(rbtree_t, t, &k);
@@ -210,6 +222,8 @@ static struct rbnode_t *find_rbnode(uint32_t fd, struct rbtree_t *t)
 
 static void release_rbnode(struct rbnode_t *n)
 {
+    ASSERT(NULL != n);
+
     free(n->ev);
     free(n);
 }
@@ -219,6 +233,8 @@ static void release_rbtree(struct rbtree_t *t)
     static struct rbnode_t *ns[FD_SETSIZE] = { 0 };
     int size = 0;
     struct rbnode_t *n = NULL;
+
+    ASSERT(NULL != t);
 
     n = RB_MIN(rbtree_t, t);
     while (n)
@@ -239,6 +255,8 @@ static int event_del_by_fd(uint32_t fd, struct rbtree_t *t, fd_set *s)
     struct rbnode_t *n = NULL;
     event_t e = { 0 };
     uint32_t i = UINT32_MAX;
+
+    ASSERT(NULL != t && NULL != s);
 
     for (i = 0; i<_active_size; i++)
     {
@@ -264,6 +282,9 @@ static int rbnode_del_no_free(struct rbnode_t *n)
 {
     struct rbtree_t *t = NULL;
     fd_set          *s = NULL;
+
+    ASSERT(NULL != n);
+
     if (n->ev->type & EV_READ)
     {
         t = &_read_evs;

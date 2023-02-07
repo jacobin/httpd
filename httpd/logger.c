@@ -9,6 +9,8 @@ void log_debug(const char *fmt, ...)
     char buffer[BUFFER_UNIT] = { 0 };
     va_list args;
 
+    ASSERT(NULL != fmt);
+
     if (LOG_DEBU < LOG_LEVEL)
         return;
     
@@ -23,6 +25,8 @@ void log_info(const char *fmt, ...)
 {
     char buffer[BUFFER_UNIT] = { 0 };
     va_list args;
+
+    ASSERT(NULL != fmt);
 
     if (LOG_INFO < LOG_LEVEL)
         return;
@@ -39,6 +43,8 @@ void log_warn(const char *fmt, ...)
     char buffer[BUFFER_UNIT] = { 0 };
     va_list args;
 
+    ASSERT(NULL != fmt);
+
     if (LOG_WARN < LOG_LEVEL)
         return;
 
@@ -54,6 +60,8 @@ void log_error(const char *fmt, ...)
 {
     char buffer[BUFFER_UNIT] = { 0 };
     va_list args;
+
+    ASSERT(NULL != fmt);
 
     if (LOG_ERRO < LOG_LEVEL)
         return;
@@ -75,6 +83,8 @@ static void log_print(log_level_t lv, const char *msg)
     time_t t = 0;
     struct tm *p = NULL;
     int iSnprintRet = -1;
+
+    ASSERT(NULL != msg);
 
     t = time(NULL) + 8 * 3600;
     p = gmtime(&t);

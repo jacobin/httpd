@@ -140,7 +140,7 @@ const char* file_ext(const char* file_name)
     return ext;
 }
 
-charp2free_t root_path()
+char* root_path()
 {
     static char* root=NULL;
     const int nRootLenBudget = MAX_PATH2;

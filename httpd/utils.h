@@ -12,7 +12,7 @@ charp2free_t ansi_to_utf8(const char* str);
 int file_exist(const char *file_name);
 int remove_file(const char *file_name);
 const char* file_ext(const char* file_name);
-charp2free_t root_path();
+char* root_path();
 char* uint32_to_str(uint32_t n);
 void mySleep(int sleepMs);
 const char* stristr( const char* str1, const char* str2 );

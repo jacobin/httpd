@@ -132,6 +132,7 @@ static const char* log_file_name()
     static struct tm last = {0};
     int iSnprintRet = -1;
     const char* const rp = root_path();
+    const size_t rpLen = strlen(rp);
 
     time_t t = time(NULL);
     struct tm now;
@@ -145,8 +146,8 @@ static const char* log_file_name()
     }
     memcpy(&last, &now, sizeof(struct tm));
     memset(file_name, 0, sizeof(file_name));
-    iSnprintRet = memcpy_s(file_name, sizeof(file_name), rp, strlen(rp));
+    iSnprintRet = memcpy_s(file_name, sizeof(file_name), rp, rpLen);
     ASSERT( 0 == iSnprintRet );
-    strftime(file_name+strlen(rp), sizeof(file_name)-strlen(rp), "%Y-%m-%d.log", &now);
+    strftime(file_name+rpLen, sizeof(file_name)-rpLen, "%Y-%m-%d.log", &now);
     return file_name;
 }

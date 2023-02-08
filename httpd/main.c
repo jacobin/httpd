@@ -17,8 +17,8 @@ LONG __stdcall crush_callback(struct _EXCEPTION_POINTERS* ep)
 
     ASSERT(NULL != ep);
 
-    t = time(NULL) + 8 * 3600;
-    p = gmtime(&t);
+    t = time(NULL);
+    p = localtime(&t);
 
     iSnprintRet = sprintf_s(fname, sizeof(fname), "dump_%d-%d-%d_%d_%d_%d.DMP", 1900+p->tm_year, 1+p->tm_mon, p->tm_mday, (p->tm_hour)%24, p->tm_min, p->tm_sec);
     ASSERT( 0 <= iSnprintRet );

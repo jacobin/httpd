@@ -132,7 +132,7 @@ static const char* log_file_name()
     static struct tm last = {0};
     int iSnprintRet = -1;
 
-    time_t t = time(0);
+    time_t t = time(NULL);
     struct tm now;
     now = *localtime(&t);
 

@@ -481,14 +481,14 @@ charp2free_t url_escape(const char* s)
         }
 
         if (result_size <= (used + 4)) { // such as "%20"
-            charp2free_t result2 = NULL;
+            charp2free_t tmp = NULL;
             result_size += 100;
-            result2 = (charp2free_t)realloc(result, result_size);
-            if (NULL == result2) {
+            tmp = (charp2free_t)realloc(result, result_size);
+            if (NULL == tmp) {
                 free(result);
                 return NULL;
             }
-            result = result2;
+            result = tmp;
         }
     }
     result[used] = (char)NULL;
@@ -594,14 +594,14 @@ charp2free_t html_escape(const char* s)
         }
 
         if (result_size <= (used + 7)) { // such as "&#126;"
-            charp2free_t result2 = NULL;
+            charp2free_t tmp = NULL;
             result_size += 100;
-            result2 = (charp2free_t)realloc(result, result_size);
-            if (NULL == result2) {
+            tmp = (charp2free_t)realloc(result, result_size);
+            if (NULL == tmp) {
                 free(result);
                 return NULL;
             }
-            result = result2;
+            result = tmp;
         }
     }
     result[used] = (char)NULL;

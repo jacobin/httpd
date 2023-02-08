@@ -338,14 +338,17 @@ static int read_request_header(event_t *ev, char **buf, int *size)
             (*buf)[idx++] = c;
             if (idx >= *size - 1) // last char using for '\0'
             {
+                charp2free_t tmp = NULL;
                 // buffer is not enough
                 *size += BUFFER_UNIT;
-                *buf = (char*)realloc(*buf, *size);
-                if (!(*buf))
+                tmp = (charp2free_t)realloc(*buf, *size);
+                if ( NULL == tmp )
                 {
                     log_error("{%s:%d} realloc fail.", __FUNCTION__, __LINE__);
+                    free( *buf );
                     return FAIL;
                 }
+                *buf = tmp;
             }
             if (idx >= 4 && (*buf)[idx - 1] == LF && (*buf)[idx - 2] == CR
                 && (*buf)[idx - 3] == LF && (*buf)[idx - 4] == CR)
@@ -960,15 +963,18 @@ static char* local_file_list(const char *path)
             line[line_length] = 0;
             if (offset+line_length > size-1)
             {
+                charp2free_t tmp = NULL;
                 size += BUFFER_UNIT;
-                result = (char*)realloc(result, size);
-                if ( NULL == result )
+                tmp = (charp2free_t)realloc(result, size);
+                if ( NULL == tmp )
                 {
                     log_error("{%s:%d} realloc fail.", __FUNCTION__, __LINE__);
+                    free( result );
                     free(utf8);
                     FindClose(hFind);
                     return NULL;
                 }
+                result = tmp;
             }
             iSnprintRet = memcpy_s(result+offset, size - offset, line, line_length);
             ASSERT( 0 == iSnprintRet );
@@ -1074,9 +1080,10 @@ static char* local_file_list(const char *path)
 
             if (offset+line_length > size-1)
             {
+                charp2free_t tmp = NULL;
                 size += BUFFER_UNIT;
-                result = (char*)realloc(result, size);
-                if ( NULL == result )
+                tmp = (charp2free_t)realloc(result, size);
+                if ( NULL == tmp )
                 {
                     log_error("{%s:%d} realloc fail.", __FUNCTION__, __LINE__);
                     FindClose(hFind);
@@ -1084,6 +1091,7 @@ static char* local_file_list(const char *path)
                     LOOP_FREE
                     return NULL;
                 }
+                result = tmp;
             }
             iSnprintRet = memcpy_s(result+offset, size-offset, line, line_length);
             ASSERT( 0 == iSnprintRet );
@@ -1203,6 +1211,10 @@ static void response_home_page(event_t *ev, const char *path)
         return;
 
     utf8 = ansi_to_utf8(path);
+    if (NULL == utf8 ) {
+        return;
+    }
+
     length = strlen(html_format) + strlen(file_list) + (strlen(utf8) - strlen("%s"))*3 + 1;
     html = (char*)malloc(length);
     if (!html)

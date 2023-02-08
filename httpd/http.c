@@ -120,6 +120,7 @@ static void read_callback(event_t *ev)
     char  file_path[MAX_PATH2] = {0};
     int iSnprintRet = -1;
     int iTmp = -1;
+    const char* const rp = root_path();
 
     ASSERT( NULL != ev );
 
@@ -163,7 +164,7 @@ static void read_callback(event_t *ev)
         {
             // get upload file save path from uri
             memset(file_path, 0, sizeof(file_path));
-            iSnprintRet = memcpy_s(file_path, sizeof(file_path), root_path(), strlen(root_path()));
+            iSnprintRet = memcpy_s(file_path, sizeof(file_path), rp, strlen(rp));
             ASSERT( 0 == iSnprintRet );
             if (strlen(header.uri) > strlen("/upload?path="))
             {
@@ -264,7 +265,7 @@ static void read_callback(event_t *ev)
         {
             // send file
             memset(file_path, 0, sizeof(file_path));
-            iSnprintRet = _snprintf( file_path, sizeof(file_path)-1, "%s%s", root_path(), header.uri+1 );
+            iSnprintRet = _snprintf( file_path, sizeof(file_path)-1, "%s%s", rp, header.uri+1 );
             if ( iSnprintRet <= 0 )
             {
                 ASSERT( 0 );
@@ -1206,14 +1207,15 @@ static void response_home_page(event_t *ev, const char *path)
     char *utf8 = NULL;
 
     int iSnprintRet = -1;
+    const char* const rp = root_path();
 
     ASSERT( NULL != ev && NULL != path );
 
     {
         char* local_absolute_path = NULL;
-        const size_t lapLen = strlen(root_path()) + strlen(path) +1;
+        const size_t lapLen = strlen(rp) + strlen(path) +1;
         local_absolute_path = (char*)malloc( lapLen );
-        iSnprintRet = sprintf_s( local_absolute_path, lapLen, "%s%s", root_path(), path );
+        iSnprintRet = sprintf_s( local_absolute_path, lapLen, "%s%s", rp, path );
         ASSERT( 0 <= iSnprintRet );
         file_list = local_file_list(local_absolute_path);
         free( local_absolute_path );

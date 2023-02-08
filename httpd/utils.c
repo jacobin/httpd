@@ -267,7 +267,7 @@ void set_root_path( const char* folder_path )
     }
 }
 
-char* root_path()
+const char* root_path()
 {
     return (NULL != g_root) ? g_root : root_path2();
 }

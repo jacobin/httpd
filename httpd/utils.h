@@ -13,7 +13,6 @@ int file_exist(const char *file_name);
 int remove_file(const char *file_name);
 const char* file_ext(const char* file_name);
 char* root_path();
-char* uint32_to_str(uint32_t n);
 void mySleep(int sleepMs);
 const char* stristr( const char* str1, const char* str2 );
 ULONGLONG filesize64( DWORD nFileSizeHigh, DWORD nFileSizeLow );

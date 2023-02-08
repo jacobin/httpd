@@ -216,14 +216,6 @@ char* root_path()
     return root;
 }
 
-char* uint32_to_str(uint32_t n)
-{
-    static char buf[16] = {0};
-    memset(buf, 0, sizeof(buf));
-    _itoa(n, buf, 10);
-    return buf;
-}
-
 ///////////////////////////////////////////////////////////////////////////////
 # ifdef LINUX
 #    include <unistd.h>

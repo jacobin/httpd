@@ -144,59 +144,73 @@ const char* file_ext(const char* file_name)
 char* root_path()
 {
     static char* root = NULL;
-    const int nRootLenBudget = MAX_PATH2;
-    uint32_t i = 0;
-    int nRootLen = 0;
-    int nRootLenIncSlashNull = 0;
-    int iTmp = -1;
-
-    if ( NULL != root )
-    {
-        return root;
-    }
-
-    root = (char*)malloc( nRootLenBudget );
     if ( NULL == root )
     {
-        log_error("{%s:%d} malloc fail.", __FUNCTION__, __LINE__);
-        return NULL;
-    }
-    memset( root, 0, nRootLenBudget );
+        // DWORD GetCurrentDirectory( [in] DWORD  nBufferLength, [out] LPTSTR lpBuffer );
+        //    To determine the required buffer size, set tlpBuffer to NULL and the nBufferLength parameter to 0.
+        //
+        // If the function succeeds, the return value specifies the number of 
+        //    characters that are written to the buffer, not including the 
+        //    terminating null character.
 
-    ASSERT( NULL != root );
-    if ( 0 == ( nRootLen = GetCurrentDirectoryA(nRootLenBudget, root) ) )
-    {
-        free( root );
-        root = NULL;
-        return NULL;
-    }
+        //    If the function fails, the return value is zero. To get extended error
+        //    information, call GetLastError.
 
-    nRootLenIncSlashNull = nRootLen +2;
-    if ( nRootLenBudget < nRootLenIncSlashNull )
-    {
-        root = (char*)realloc( root, nRootLenIncSlashNull );
-        if ( NULL == root )
+        //    If the buffer that is pointed to by lpBuffer is not large enough, the
+        //    return value specifies the required size of the buffer, in characters,
+        //    including the null-terminating character.
+        const size_t nRootLen = GetCurrentDirectoryA(0, NULL);
+        if ( 0 == nRootLen )
         {
-            log_error("{%s:%d} realloc fail.", __FUNCTION__, __LINE__);
+            log_error( "{%s:%d} GetCurrentDirectoryA fail %d.", __FUNCTION__, __LINE__, GetLastError() );
             return NULL;
         }
-        memset( root, 0, nRootLenIncSlashNull );
 
-        iTmp = GetCurrentDirectoryA(nRootLen, root);
-        ASSERT( iTmp == nRootLen );
-    }
-
-    ASSERT( NULL != root );
-    for (i=0; i<strlen(root); i++)
-    {
-        if (root[i] == '\\')
         {
-            root[i] = '/';
+            // GetCurrentDirectoryA: If the function succeeds, the return value 
+            //   specifies the number of characters that are written to the buffer, NOT
+            //   including the terminating null character
+            const size_t nRootLenIncSlashNull = nRootLen + 1 + 1;
+            root = (char*)malloc( nRootLenIncSlashNull );
+            if ( NULL == root )
+            {
+                log_error("{%s:%d} realloc fail.", __FUNCTION__, __LINE__);
+                return NULL;
+            }
+            memset( root, 0, nRootLenIncSlashNull );
         }
-    }
-    if (root[strlen(root)-1] != '/')
-    {
-        root[strlen(root)] = '/';
+        
+        {
+            // ... in characters, including the null-terminating character.
+            DWORD dwTmp = GetCurrentDirectoryA(nRootLen, root);
+            ASSERT( (dwTmp+1) == nRootLen );
+        }
+
+        {
+            size_t i = 0;
+            // ... in characters, including the null-terminating character.
+            const size_t tmp = strlen(root);
+            ASSERT( (tmp+1) == nRootLen );
+            
+            for ( i = 0; i < tmp; i++ )
+            {
+                if (root[i] == '\\')
+                {
+                    root[i] = '/';
+                }
+            }
+            if (root[tmp-1] != '/')
+            {
+                root[tmp] = '/';
+
+                // 1. This operation is actually unnecessary, because nRootLen 
+                //    in "GetCurrentDirectoryA(nRootLen, root);" limits the writing
+                //    of GetCurrentDirectoryA from exceeding the scope
+                // 2. "nRootLenIncSlashNull" guarantees that this operation will not overflow
+                root[ tmp+1 ] = 0; 
+                                 
+            }
+	    }
     }
 
     return root;

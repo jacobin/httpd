@@ -546,7 +546,7 @@ charp2free_t url_escape(const char* s)
 //
 //int main()
 //{
-//    const char s[] = "为凸显“红顶商人”地位，肖建华不但平时戴着红帽子，还公开喊话，说自己帮习近平姐姐、曾庆红儿子理财。图片中，#肖建华 在香港四季酒店的楼下广场，装模作样地看着中共高官的回忆录.jpg";
+//    const char s[] = "abc“ABC”def，a，b、c。d，#efg hij，lm.jpg";
 //    charp2free_t result = url_escape(s);
 //    printf("%s", result);
 //    free(result);
@@ -572,7 +572,44 @@ charp2free_t url_escape(const char* s)
 //#define False 0
 //#define True 1
 
-static const char g_chars2bescaped[] = { '\t', '\n', '\x20', '!', '"', '#', '$', '%', '&', '\'', '(', ')', '*', '+', ',', '-', '.', '/', ':', ';', '<', '=', '>', '?', '@', '[', '\\', ']', '^', '_', '`', '{', '|', '}', '~' };
+static const char g_chars2bescaped[] =
+{
+    '\t',
+    '\n',
+    '\x20',
+    '!',
+    '"',
+    '#',
+    '$',
+    '%',
+    '&',
+    '\'',
+    '(',
+    ')',
+    '*',
+    '+',
+    ',',
+    '-',
+    '.',
+    '/',
+    ':',
+    ';',
+    '<',
+    '=',
+    '>',
+    '?',
+    '@',
+    '[',
+    '\\',
+    ']',
+    '^',
+    '_',
+    '`',
+    '{',
+    '|',
+    '}',
+    '~'
+};
 
 static index_t bins2(const char escape_chars[], index_t endidx, char c, Bool_t* b)
 {
@@ -659,7 +696,7 @@ charp2free_t html_escape(const char* s)
 //
 //int main()
 //{
-//    const char s[] = "为凸显“红顶商人”地位，肖建华不但平时戴着红帽子，还公开喊话，说自己帮习近平姐姐、曾庆红儿子理财。图片中，#肖建华 在香港四季酒店的楼下广场，装模作样地看着中共高官的回忆录.jpg";
+//    const char s[] = "abc“ABC”def，a，b、c。d，#efg hij，lm.jpg";
 //    charp2free_t result = html_escape(s);
 //    printf("%s", result);
 //    free(result);

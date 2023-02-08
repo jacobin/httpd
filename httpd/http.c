@@ -1198,16 +1198,17 @@ static void response_home_page(event_t *ev, const char *path)
 
     ASSERT( NULL != ev && NULL != path );
 
-    utf8 = ansi_to_utf8(path);
     file_list = local_file_list(path);
     if (!file_list)
         return;
 
+    utf8 = ansi_to_utf8(path);
     length = strlen(html_format) + strlen(file_list) + (strlen(utf8) - strlen("%s"))*3 + 1;
     html = (char*)malloc(length);
     if (!html)
     {
         log_error("{%s:%d} malloc fail.", __FUNCTION__, __LINE__);
+        free(utf8);
         return;
     }
     iSnprintRet = sprintf_s(html, length, html_format, utf8, utf8, utf8, file_list);

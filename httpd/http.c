@@ -65,7 +65,10 @@ int http_startup(uint16_t *port)
     log_info("{%s:%d} Http server start...", __FUNCTION__, __LINE__);
     network_init();
     event_init();
-    network_listen(port, &fd);
+    if ( SUCC != network_listen(port, &fd) )
+    {
+        return FAIL;
+    }
 
     ev.fd = fd;
     ev.ip = htonl(INADDR_ANY);
@@ -1206,7 +1209,15 @@ static void response_home_page(event_t *ev, const char *path)
 
     ASSERT( NULL != ev && NULL != path );
 
-    file_list = local_file_list(path);
+    {
+        char* local_absolute_path = NULL;
+        const size_t lapLen = strlen(root_path()) + strlen(path) +1;
+        local_absolute_path = (char*)malloc( lapLen );
+        iSnprintRet = sprintf_s( local_absolute_path, lapLen, "%s%s", root_path(), path );
+        ASSERT( 0 <= iSnprintRet );
+        file_list = local_file_list(local_absolute_path);
+        free( local_absolute_path );
+    }
     if (!file_list)
         return;
 

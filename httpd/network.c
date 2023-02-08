@@ -39,23 +39,36 @@ ret_code_t network_listen(uint16_t *port, SOCKET *fd)
         exit(1);
     }
 
-    do 
-    {
-        memset(&addr, 0, sizeof(addr));
-        addr.sin_family = AF_INET;
-        addr.sin_port = htons(*port);
-        addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    // {{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{
+    //do 
+    //{
+    //    memset(&addr, 0, sizeof(addr));
+    //    addr.sin_family = AF_INET;
+    //    addr.sin_port = htons(*port);
+    //    addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
-        ret = bind(*fd, (struct sockaddr*)&addr, sizeof(addr));
-        if (SOCKET_ERROR == ret)
-        {
-            (*port)++;
-        }
-        else
-        {
-            break;
-        }
-    } while (*port < INVALID_PORT);
+    //    ret = bind(*fd, (struct sockaddr*)&addr, sizeof(addr));
+    //    if (SOCKET_ERROR == ret)
+    //    {
+    //        (*port)++;
+    //    }
+    //    else
+    //    {
+    //        break;
+    //    }
+    //} while (*port < INVALID_PORT);
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(*port);
+    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+
+    ret = bind(*fd, (struct sockaddr*)&addr, sizeof(addr));
+    if (SOCKET_ERROR == ret)
+    {
+        log_error("{%s:%d} bind fail. WSAGetLastError=%d", __FUNCTION__, __LINE__, WSAGetLastError());
+        return FAIL;
+    }
+    // }}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}
 
     if (INVALID_PORT == *port)
     {

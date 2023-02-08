@@ -1,6 +1,7 @@
 #include "httpd.h"
 #include "utils.h"
 #include <Dbghelp.h> 
+#include "getopt.h"
 
 
 #pragma comment(lib, "Dbghelp.lib")
@@ -51,15 +52,129 @@ LONG __stdcall crush_callback(struct _EXCEPTION_POINTERS* ep)
     return EXCEPTION_EXECUTE_HANDLER;
 }
 
-int main()
+Bool_t parse_command_line( int argc, char* argv[], charp2free_t* root_path, UINT16* port )
+{
+    int    verbose_flag = 0;
+    Bool_t help = False;
+    char*  root_path2 = NULL;
+    UINT16 port2 = 80;
+
+    const struct option long_options[]  =
+    {
+        { "verbose",   ARG_NONE, &verbose_flag,        1 },
+        { "brief",     ARG_NONE, &verbose_flag,        0 },
+        { "help",      ARG_NONE,             0,      'h' },
+        { "root_path",  ARG_REQ,             0,      'r' },
+        { "port", 	    ARG_REQ,             0,      'p' },
+        { ARG_NULL,    ARG_NULL,      ARG_NULL, ARG_NULL }
+    };
+
+    while ( 1 )
+    {
+        int option_index = 0;
+        const int c = getopt_long( argc, argv, "r:p:h", long_options, &option_index );
+
+        // Check for end of operation or error
+        if ( -1 == c )
+        {
+            break;
+        }
+
+        // Handle options
+        switch ( c )
+        {
+        case 0:
+            // If this option set a flag, do nothing else now.
+            if ( 0 != long_options[option_index].flag )
+            {
+                break;
+            }
+
+            fprintf(stderr, "option %s", long_options[option_index].name );
+            if ( optarg )
+            {
+                fprintf(stderr, " with argument %s", optarg );
+            }
+            fprintf(stderr, "\n" );
+            break;
+
+        case 'r':
+            root_path2 = _strdup( optarg );
+            break;
+
+        case 'p':
+            port2 = atoi( optarg );
+            break;
+
+        case 'h':
+            help = True;
+            break;
+
+        case '?':
+            // getopt_long already printed an error message.
+            break;
+
+        default:
+            abort();
+        }
+    }
+
+    if ( verbose_flag )
+    {
+        fprintf(stderr, "verbose flag is set\n" );
+    }
+
+    if ( optind < argc )
+    {
+        fprintf(stderr, "non-option ARGV-elements: " );
+        while ( optind < argc )
+        {
+            fprintf(stderr, "%s ", argv[optind++] );
+        }
+        fprintf(stderr, "\n" );
+    }
+
+    if ( help )
+    {
+        fprintf(stderr, "httpd [-h/--help]\x20"
+            "[-rRootPath/--root_path2 RootPath]\x20"
+            "[-pPort/--port Port]\x20" );
+        return False;
+    }
+
+    *root_path = root_path2;
+    *port = port2;
+
+    return True;
+}
+
+int main( int argc, char* argv[] )
 {
     UINT16 port = 80;
+    
+    charp2free_t root_path2 = NULL;
+    UINT16 port2 = UINT16_MAX;
+    if ( False == parse_command_line( argc, argv, &root_path2, &port2 ) )
+    {
+        return 1;
+    }
+
+    if ( !folder_exist(root_path2) )
+    {
+        fprintf( stdout, "The specified root directory \"%s\" does not exist\n", root_path2 );
+        return 2;
+    }
+    set_root_path(root_path2);
+    free( root_path2 );
 
 start_again:
-    port = 80;
+    port = port2;
     SetUnhandledExceptionFilter(crush_callback);
     
-    http_startup(&port);
+    if ( SUCC != http_startup(&port) )
+    {
+        return 3;
+    }
 
     mySleep(2000);
 

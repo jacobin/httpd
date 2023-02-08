@@ -1,6 +1,7 @@
 #include "httpd.h"
 #include "logger.h"
 #include "utils.h"
+#include <sys/stat.h>
 
 wcharp2free_t ansi_to_unicode(const char* str)
 {
@@ -104,16 +105,27 @@ charp2free_t ansi_to_utf8(const char* str)
     return utf8;
 }
 
-int file_exist(const char *file_name)
+Bool_t file_exist(const char *file_path)
 {
     FILE* fp = NULL;
-    ASSERT(NULL!=file_name);
-    fp = fopen(file_name, "rb");
+    ASSERT(NULL!=file_path);
+    fp = fopen(file_path, "rb");
     if (fp)
     {
         fclose(fp);
     }
     return fp != NULL;
+}
+
+// https://stackoverflow.com/questions/12510874/how-can-i-check-if-a-directory-exists
+Bool_t folder_exist(const char* folder_path)
+{
+    struct stat sb;
+    if ( stat(folder_path, &sb) == 0 && (S_IFDIR & sb.st_mode) ) {
+        return True;
+    } else {
+        return False;
+    }
 }
 
 int remove_file(const char *file_name)
@@ -141,7 +153,7 @@ const char* file_ext(const char* file_name)
 }
 
 
-char* root_path()
+static char* root_path2()
 {
     static char* root = NULL;
     if ( NULL == root )
@@ -214,6 +226,50 @@ char* root_path()
     }
 
     return root;
+}
+
+static char* g_root = NULL;
+void set_root_path( const char* folder_path )
+{
+    size_t i = 0;
+    const size_t fpLen = strlen(folder_path);
+    const size_t bufsize_inc_slash_null = fpLen + 2; // include slash and NULL
+    errno_t err = 0;
+
+    ASSERT( NULL == g_root );
+    g_root = (char*)malloc( bufsize_inc_slash_null );
+    if ( NULL == g_root )
+    {
+        log_error("{%s:%d} malloc fail.", __FUNCTION__, __LINE__);
+        return;
+    }
+    memset( g_root, 0, bufsize_inc_slash_null );
+    err = strcpy_s( g_root, bufsize_inc_slash_null, folder_path );
+    ASSERT( 0 == err );
+
+    {
+        const size_t tmp = strlen(g_root);
+        for ( i = 0; i < tmp; i++ )
+        {
+            if (g_root[i] == '\\')
+            {
+                g_root[i] = '/';
+            }
+        }
+        if (g_root[tmp-1] != '/')
+        {
+            g_root[tmp] = '/';
+
+            // This operation is necessary because "strcpy_s( g_root, bufsize_inc_slash_null, folder_path );" will
+            // modify the content of the space other than bufsize_inc_slash_null.
+            g_root[tmp+1] = 0;
+        }
+    }
+}
+
+char* root_path()
+{
+    return (NULL != g_root) ? g_root : root_path2();
 }
 
 ///////////////////////////////////////////////////////////////////////////////

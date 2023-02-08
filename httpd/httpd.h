@@ -12,6 +12,8 @@
 
 #define BUFFER_UNIT 4096
 
+#define INVALID_PORT  (uint16_t)(-1)
+
 #ifdef _DEBUG
 #define ASSERT(x)   { assert(x); }
 #else

@@ -153,22 +153,29 @@ int main( int argc, char* argv[] )
     UINT16 port = 80;
     
     charp2free_t root_path2 = NULL;
-    UINT16 port2 = UINT16_MAX;
+    UINT16 port2 = INVALID_PORT;
     if ( False == parse_command_line( argc, argv, &root_path2, &port2 ) )
     {
         return 1;
     }
 
-    if ( !folder_exist(root_path2) )
+    if ( NULL != root_path2 )
     {
-        fprintf( stdout, "The specified root directory \"%s\" does not exist\n", root_path2 );
-        return 2;
+        if ( !folder_exist(root_path2) )
+        {
+            fprintf( stdout, "The specified root directory \"%s\" does not exist\n", root_path2 );
+            free( root_path2 );
+            return 2;
+        }
+        set_root_path(root_path2);
+        free( root_path2 );
     }
-    set_root_path(root_path2);
-    free( root_path2 );
 
 start_again:
-    port = port2;
+    if ( port2 != INVALID_PORT )
+    {
+        port = port2;
+    }
     SetUnhandledExceptionFilter(crush_callback);
     
     if ( SUCC != http_startup(&port) )

@@ -1,8 +1,5 @@
 #include "httpd.h"
 
-
-#define INVALID_PORT        (uint16_t)(-1)
-
 ret_code_t network_init()
 {
     WSADATA wsaData;

@@ -77,11 +77,6 @@ charp2free_t utf8_to_ansi(const char* str)
         return NULL;
     }
     ansi = unicode_to_ansi(uni);
-    if ( NULL == ansi )
-    {
-        free(uni);
-        return NULL;
-    }
     free(uni);
     return ansi;
 }
@@ -96,11 +91,6 @@ charp2free_t ansi_to_utf8(const char* str)
         return NULL;
     }
     utf8 = unicode_to_utf8(uni);
-    if ( NULL == utf8 )
-    {
-        free(uni);
-        return NULL;
-    }
     free(uni);
     return utf8;
 }

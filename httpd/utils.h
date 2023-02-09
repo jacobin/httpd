@@ -1,6 +1,10 @@
 #ifndef __UTILS_H__
 #define __UTILS_H__
 
+#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
+
 #define MAX_PATH2 (2*MAX_PATH)
 
 wcharp2free_t ansi_to_unicode(const char* str);

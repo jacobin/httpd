@@ -219,7 +219,6 @@ int main( int argc, char* argv[] )
         free( root_path2 );
     }
 
-start_again:
     if ( port2 != INVALID_PORT )
     {
         port = port2;
@@ -230,10 +229,6 @@ start_again:
     {
         return 3;
     }
-
-    mySleep(2000);
-
-    goto start_again;
 
     return 0;
 }

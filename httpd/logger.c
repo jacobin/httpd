@@ -133,10 +133,12 @@ static const char* log_file_name()
     int iSnprintRet = -1;
     const char* const rp = root_path();
     const size_t rpLen = strlen(rp);
+    errno_t err = -1;
 
     time_t t = time(NULL);
     struct tm now;
-    now = *localtime(&t);
+    err = localtime_s(&now, &t);
+    ASSERT( 0 == err );
 
     if (last.tm_year == now.tm_year
         && last.tm_mon == now.tm_mon

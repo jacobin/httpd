@@ -9,16 +9,19 @@
 LONG __stdcall crush_callback(struct _EXCEPTION_POINTERS* ep)
 {
     time_t t = 0;
-    struct tm *p = NULL;
+    struct tm m;
+    struct tm *p = &m;
     char fname[MAX_PATH2] = {0};
     MINIDUMP_EXCEPTION_INFORMATION    exceptioninfo;
     HANDLE hFile = INVALID_HANDLE_VALUE;
     int iSnprintRet = -1;
+    errno_t err = -1;
 
     ASSERT(NULL != ep);
 
     t = time(NULL);
-    p = localtime(&t);
+    err = localtime_s(&m, &t);
+    ASSERT( 0 == err );
 
     iSnprintRet = sprintf_s(fname, sizeof(fname), "dump_%d-%d-%d_%d_%d_%d.DMP", 1900+p->tm_year, 1+p->tm_mon, p->tm_mday, (p->tm_hour)%24, p->tm_min, p->tm_sec);
     ASSERT( 0 <= iSnprintRet );

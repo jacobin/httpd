@@ -262,6 +262,11 @@ const char* root_path()
     return (NULL != g_root) ? g_root : root_path2();
 }
 
+void free_root_path()
+{
+    free( (NULL != g_root) ? g_root : root_path2() );
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 # ifdef LINUX
 #    include <unistd.h>

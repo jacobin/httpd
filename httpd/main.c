@@ -165,6 +165,7 @@ BOOL WINAPI ConsoleHandler(DWORD CEvent)
             "CTRL+BREAK received!","CEvent",MB_OK);
         break;
     case CTRL_CLOSE_EVENT:
+        free_root_path();
         _CrtDumpMemoryLeaks();
         MessageBox(NULL,
             "Program being closed!","CEvent",MB_OK);

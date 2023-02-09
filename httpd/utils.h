@@ -19,6 +19,7 @@ int remove_file(const char *file_name);
 const char* file_ext(const char* file_name);
 const char* root_path();
 void set_root_path( const char* folder_path );
+void free_root_path();
 void mySleep(int sleepMs);
 const char* stristr( const char* str1, const char* str2 );
 ULONGLONG filesize64( DWORD nFileSizeHigh, DWORD nFileSizeLow );

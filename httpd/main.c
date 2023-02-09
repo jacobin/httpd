@@ -62,6 +62,9 @@ Bool_t parse_command_line( int argc, char* argv[], charp2free_t* root_path, UINT
     Bool_t help = False;
     char*  root_path2 = NULL;
     UINT16 port2 = 80;
+    char tmp[2048] = {0};
+    int iSnprintRet = -1;
+
 
     const struct option long_options[]  =
     {
@@ -94,12 +97,14 @@ Bool_t parse_command_line( int argc, char* argv[], charp2free_t* root_path, UINT
                 break;
             }
 
-            fprintf(stderr, "option %s", long_options[option_index].name );
+            iSnprintRet = sprintf_s(tmp, sizeof(tmp), "option %s", long_options[option_index].name );
+            ASSERT( 0 <= iSnprintRet );
             if ( optarg )
             {
-                fprintf(stderr, " with argument %s", optarg );
+                iSnprintRet = sprintf_s(tmp+strlen(tmp), sizeof(tmp)-strlen(tmp), " with argument %s", optarg );
+                ASSERT( 0 <= iSnprintRet );
             }
-            fprintf(stderr, "\n" );
+            log_info("{%s:%d} getopt_long: %s", __FUNCTION__, __LINE__, tmp );
             break;
 
         case 'r':
@@ -125,24 +130,26 @@ Bool_t parse_command_line( int argc, char* argv[], charp2free_t* root_path, UINT
 
     if ( verbose_flag )
     {
-        fprintf(stderr, "verbose flag is set\n" );
+        log_info("{%s:%d} verbose flag is set", __FUNCTION__, __LINE__ );
     }
 
     if ( optind < argc )
     {
-        fprintf(stderr, "non-option ARGV-elements: " );
+        iSnprintRet = sprintf_s(tmp, sizeof(tmp), "%s", "non-option ARGV-elements: " );
+        ASSERT( 0 <= iSnprintRet );
         while ( optind < argc )
         {
-            fprintf(stderr, "%s ", argv[optind++] );
+            iSnprintRet = sprintf_s(tmp+strlen(tmp), sizeof(tmp)-strlen(tmp), "%s ", argv[optind++] );
+            ASSERT( 0 <= iSnprintRet );
         }
-        fprintf(stderr, "\n" );
+        log_info("{%s:%d} getopt_long: %s", __FUNCTION__, __LINE__, tmp );
     }
 
     if ( help )
     {
         fprintf(stderr, "httpd [-h/--help]\x20"
-            "[-rRootPath/--root_path2 RootPath]\x20"
-            "[-pPort/--port Port]\x20" );
+                        "[-rRootPath/--root_path2 RootPath]\x20"
+                        "[-pPort/--port Port]\x20" );
         return False;
     }
 
@@ -152,35 +159,34 @@ Bool_t parse_command_line( int argc, char* argv[], charp2free_t* root_path, UINT
     return True;
 }
 
+#define EXIT_SERVER \
+    _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG); \
+    _CrtDumpMemoryLeaks();
+
 BOOL WINAPI ConsoleHandler(DWORD CEvent)
 {
     switch(CEvent)
     {
     case CTRL_C_EVENT:
-        MessageBox(NULL,
-            "CTRL+C received!","CEvent",MB_OK);
+        //MessageBox(NULL, "CTRL+C received!", "CEvent", MB_OK);
         break;
     case CTRL_BREAK_EVENT:
-        MessageBox(NULL,
-            "CTRL+BREAK received!","CEvent",MB_OK);
+        //MessageBox(NULL, "CTRL+BREAK received!", "CEvent", MB_OK);
         break;
     case CTRL_CLOSE_EVENT:
-        free_root_path();
-        _CrtDumpMemoryLeaks();
-        MessageBox(NULL,
-            "Program being closed!","CEvent",MB_OK);
+        //MessageBox(NULL, "Program being closed!", "CEvent", MB_OK);
+        EXIT_SERVER;
         break;
     case CTRL_LOGOFF_EVENT:
-        _CrtDumpMemoryLeaks();
-        MessageBox(NULL,
-            "User is logging off!","CEvent",MB_OK);
+        //MessageBox(NULL, "User is logging off!", "CEvent", MB_OK);
+        EXIT_SERVER;
         break;
     case CTRL_SHUTDOWN_EVENT:
-        _CrtDumpMemoryLeaks();
-        MessageBox(NULL,
-            "User is logging off!","CEvent",MB_OK);
+        //MessageBox(NULL, "User is logging off!", "CEvent", MB_OK);
+        EXIT_SERVER;
         break;
-
+    default:
+        ASSERT( False );
     }
     return TRUE;
 }
@@ -194,16 +200,13 @@ int main( int argc, char* argv[] )
 
     _CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
 
-    if (SetConsoleCtrlHandler(
-        (PHANDLER_ROUTINE)ConsoleHandler,TRUE)==FALSE)
+    if ( !SetConsoleCtrlHandler((PHANDLER_ROUTINE)ConsoleHandler,TRUE) )
     {
-        // unable to install handler... 
-        // display message to the user
-        printf("Unable to install handler!\n");
+        log_error("{%s:%d} SetConsoleCtrlHandler fail.", __FUNCTION__, __LINE__);
         return -1;
     }
 
-    if ( False == parse_command_line( argc, argv, &root_path2, &port2 ) )
+    if ( !parse_command_line( argc, argv, &root_path2, &port2 ) )
     {
         return 1;
     }
@@ -212,7 +215,7 @@ int main( int argc, char* argv[] )
     {
         if ( !folder_exist(root_path2) )
         {
-            fprintf( stdout, "The specified root directory \"%s\" does not exist\n", root_path2 );
+            log_error("{%s:%d}, The specified root directory \"%s\" does not exist", __FUNCTION__, __LINE__, root_path2 );
             free( root_path2 );
             return 2;
         }

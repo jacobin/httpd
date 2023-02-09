@@ -1,3 +1,7 @@
+#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
+
 #include "httpd.h"
 #include "utils.h"
 #include <Dbghelp.h> 
@@ -151,12 +155,56 @@ Bool_t parse_command_line( int argc, char* argv[], charp2free_t* root_path, UINT
     return True;
 }
 
+BOOL WINAPI ConsoleHandler(DWORD CEvent)
+{
+    switch(CEvent)
+    {
+    case CTRL_C_EVENT:
+        MessageBox(NULL,
+            "CTRL+C received!","CEvent",MB_OK);
+        break;
+    case CTRL_BREAK_EVENT:
+        MessageBox(NULL,
+            "CTRL+BREAK received!","CEvent",MB_OK);
+        break;
+    case CTRL_CLOSE_EVENT:
+        _CrtDumpMemoryLeaks();
+        MessageBox(NULL,
+            "Program being closed!","CEvent",MB_OK);
+        break;
+    case CTRL_LOGOFF_EVENT:
+        _CrtDumpMemoryLeaks();
+        MessageBox(NULL,
+            "User is logging off!","CEvent",MB_OK);
+        break;
+    case CTRL_SHUTDOWN_EVENT:
+        _CrtDumpMemoryLeaks();
+        MessageBox(NULL,
+            "User is logging off!","CEvent",MB_OK);
+        break;
+
+    }
+    return TRUE;
+}
+
 int main( int argc, char* argv[] )
 {
     UINT16 port = 80;
-    
+
     charp2free_t root_path2 = NULL;
     UINT16 port2 = INVALID_PORT;
+
+    _CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
+
+    if (SetConsoleCtrlHandler(
+        (PHANDLER_ROUTINE)ConsoleHandler,TRUE)==FALSE)
+    {
+        // unable to install handler... 
+        // display message to the user
+        printf("Unable to install handler!\n");
+        return -1;
+    }
+
     if ( False == parse_command_line( argc, argv, &root_path2, &port2 ) )
     {
         return 1;

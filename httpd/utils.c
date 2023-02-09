@@ -456,7 +456,7 @@ static const char* url_escape2(char c)
     index_t i = 0;
     Bool_t b = False;
     i = url_escape3(g_escape_chars, 26, c, &b);
-    if (False == b) return NULL;
+    if (!b) return NULL;
     assert(0 <= i);
     return &g_escape_chars[i][1];
 }
@@ -638,7 +638,7 @@ static index_t bins(char c)
     index_t i = 0;
     Bool_t b = False;
     i = bins2(g_chars2bescaped, 35, c, &b);
-    if (False == b) return -1;
+    if (!b) return -1;
     assert(0 <= i);
     return i;
 }

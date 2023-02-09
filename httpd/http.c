@@ -81,7 +81,7 @@ int http_startup(uint16_t *port)
     rcodeTmp = event_add(&ev);
     ASSERT(SUCC == rcodeTmp);
 
-    rcodeTmp = event_dispatch();
+    rcodeTmp = event_dispatch(); // event loop inside
     ASSERT(SUCC == rcodeTmp);
 
     iTmp = closesocket(fd);
@@ -144,7 +144,7 @@ static void read_callback(event_t *ev)
         if (!buf)
             return;
         parse_request_header(buf, &header);
-        if ( False == uri_decode(header.uri) )
+        if ( !uri_decode(header.uri) )
         {
             return;
         }
@@ -386,7 +386,7 @@ static void read_request_boundary(event_t *ev)
 #define WRITE_FILE(fp, buf, size, ev) do { \
     if (size) { \
         if (size != fwrite(compare_buff, 1, size, fp)) { \
-        log_error("{%s:%d} write file fail. socket=%d", __FUNCTION__, __LINE__, ev->fd); \
+            log_error("{%s:%d} write file fail. socket=%d", __FUNCTION__, __LINE__, ev->fd); \
             release_event_data(ev); \
             ev->status = EV_IDLE; \
             response_upload_page(ev, 0); \

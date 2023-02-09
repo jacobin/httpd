@@ -59,12 +59,16 @@ int http_startup(uint16_t *port)
 {
     SOCKET fd = INVALID_SOCKET;
     event_t ev = {0};
+    ret_code_t rcodeTmp = FAIL;
+    int iTmp = -1;
 
     ASSERT( NULL != port );
 
     log_info("{%s:%d} Http server start...", __FUNCTION__, __LINE__);
-    network_init();
-    event_init();
+    rcodeTmp = network_init();
+    ASSERT(SUCC == rcodeTmp);
+    rcodeTmp = event_init();
+    ASSERT(SUCC == rcodeTmp);
     if ( SUCC != network_listen(port, &fd) )
     {
         return FAIL;
@@ -74,13 +78,18 @@ int http_startup(uint16_t *port)
     ev.ip = htonl(INADDR_ANY);
     ev.type = EV_READ | EV_PERSIST;
     ev.callback = accept_callback;
-    event_add(&ev);
+    rcodeTmp = event_add(&ev);
+    ASSERT(SUCC == rcodeTmp);
 
-    event_dispatch();
+    rcodeTmp = event_dispatch();
+    ASSERT(SUCC == rcodeTmp);
 
-    closesocket(fd);
-    event_uninit();
-    network_unint();
+    iTmp = closesocket(fd);
+    ASSERT( 0 == iTmp );
+    rcodeTmp = event_uninit();
+    ASSERT(SUCC == rcodeTmp);
+    rcodeTmp = network_unint();
+    ASSERT(SUCC == rcodeTmp);
     log_info("{%s:%d} Http server stop ...", __FUNCTION__, __LINE__);
     return SUCC;
 }
@@ -94,7 +103,7 @@ static void accept_callback(event_t *ev)
     ASSERT( NULL != ev );
 
     if (SUCC == network_accept(ev->fd, &addr, &fd))
-    {   
+    {
         ev_.fd = fd;
         ev_.ip = addr.s_addr;
         ev_.type = EV_READ | EV_PERSIST;
@@ -595,7 +604,9 @@ static void release_request_header(request_header_t *header)
 static void release_event(event_t *ev)
 {
     ASSERT( NULL != ev );
-    closesocket(ev->fd);
+    if ( 0 != closesocket(ev->fd) ) {
+        log_info("{%s:%d} closesocket fail.", __FUNCTION__, __LINE__);
+    }
     release_event_data(ev);
     event_del(ev);
 }
@@ -1263,6 +1274,7 @@ static void response_send_file_page(event_t *ev, const char *file_name)
     event_data_t* ev_data = NULL;
     event_t ev_ = {0};
     int iSnprintRet = -1;
+    ret_code_t rcodeTmp = FAIL;
 
     ASSERT( NULL != ev && NULL != file_name );
 
@@ -1272,8 +1284,9 @@ static void response_send_file_page(event_t *ev, const char *file_name)
         log_error("{%s:%d} open [%s] failed, errno=%d", __FUNCTION__, __LINE__, file_name, errno);
         release_event_data(ev);
         response_http_404_page(ev);
-        goto end;
+        return;
     }
+    ASSERT( NULL != fp );
     if (ev->data == NULL)
     {
         fseek(fp, 0, SEEK_END);
@@ -1304,11 +1317,9 @@ static void response_send_file_page(event_t *ev, const char *file_name)
     ev_.param = ev->param;
     ev_.data = ev_data;
     ev_.callback = write_callback;
-    event_add(&ev_);
-
-end:
-    if (fp)
-        fclose(fp);
+    rcodeTmp = event_add(&ev_);
+    ASSERT(FAIL != rcodeTmp );
+    fclose(fp);
 }
 
 static void response_upload_page(event_t *ev, int result)
@@ -1356,6 +1367,7 @@ static void send_response(event_t *ev, const char *title, const char *status)
     event_data_t* ev_data = NULL;
     event_t ev_ = {0};
     int iSnprintRet = -1;
+    ret_code_t rcodeTmp = FAIL;
 
     ASSERT( NULL != ev && NULL != title );
 
@@ -1371,5 +1383,5 @@ static void send_response(event_t *ev, const char *title, const char *status)
     ev_.param = ev->param;
     ev_.data = ev_data;
     ev_.callback = write_callback;
-    event_add(&ev_);
-}
+    rcodeTmp = event_add(&ev_);
+    ASSERT(FAIL != rcodeTmp );}

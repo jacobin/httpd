@@ -3,13 +3,17 @@
 ret_code_t network_init()
 {
     WSADATA wsaData;
-    WSAStartup(MAKEWORD(2, 2), &wsaData);
+    int iTmp = -1;
+    iTmp = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    ASSERT( 0 == iTmp );
     return SUCC;
 }
 
 ret_code_t network_unint()
 {
-    WSACleanup();
+    int iTmp = -1;
+    iTmp = WSACleanup();
+    ASSERT( 0 == iTmp );
     return SUCC;
 }
 

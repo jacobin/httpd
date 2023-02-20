@@ -1162,7 +1162,7 @@ static const char *reponse_content_type(const char *file_name)
         { "c",      "text/plain"                },
         { "h",      "text/plain"                },
         { "js",     "application/x-javascript"  },
-        { "png",    "image/png"         },
+        { "png",    "image/png"                 },
         { "jpg",    "image/jpeg"                },
         { "jpeg",   "image/jpeg"                },
         { "jpe",    "image/jpeg"                },
@@ -1174,7 +1174,11 @@ static const char *reponse_content_type(const char *file_name)
         { "pptx",   "application/x-ppt"         },
         { "xls",    "application/x-xls"         },
         { "xlsx",   "application/x-xls"         },
+        { "pdf",    "application/pdf"           },
         { "mp4",    "video/mpeg4"               },
+        { "webm",   "video/webm"                },
+        { "mkv",    "video/mp4"                 },
+        { "3gp",    "video/3gpp;audio/3gpp"     },
         { "mp3",    "audio/mp3"                 }
     };
 

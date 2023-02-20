@@ -657,7 +657,7 @@ static event_data_t *create_event_data_fp(const char *header, FILE *fp, int read
     int data_length = 0;
     int iSnprintRet = -1;
 
-    ASSERT( /*NULL != header &&*/ NULL != fp && 0 < total_len );
+    ASSERT( /*NULL != header &&*/ NULL != fp && 0 <= total_len );
 
     if (header)
         header_length = strlen(header);
@@ -961,6 +961,10 @@ static char* local_file_list(const char *path)
     {
         if (FILE_ATTRIBUTE_DIRECTORY & FindFileData.dwFileAttributes)
         {
+            charp2free_t escape_html = NULL;
+            charp2free_t escape_uri = NULL;
+            charp2free_t ansi = NULL;
+
             if (!result)
             {
                 result = (char*)malloc(size);
@@ -971,8 +975,34 @@ static char* local_file_list(const char *path)
                     return NULL;
                 }
             }
+
             utf8 = unicode_to_utf8(FindFileData.cFileName);
-            iSnprintRet = sprintf_s(line, sizeof(line), format_dir, utf8, utf8);
+            if ( NULL == utf8 )
+            {
+                log_error("{%s:%d} unicode_to_utf8 fail.", __FUNCTION__, __LINE__);
+                FindClose(hFind);
+                free(result);
+                return NULL;
+            }
+
+            escape_html = html_escape(utf8);
+            if (NULL == escape_html) {
+                log_error("{%s:%d} html_escape fail.", __FUNCTION__, __LINE__);
+                FindClose(hFind);
+                free(result);
+                LOOP_FREE;
+                return NULL;
+            }
+            escape_uri = url_escape(utf8);
+            if (NULL == escape_uri) {
+                log_error("{%s:%d} url_escape fail.", __FUNCTION__, __LINE__);
+                FindClose(hFind);
+                free(result);
+                LOOP_FREE;
+                return NULL;
+            }
+
+            iSnprintRet = sprintf_s(line, sizeof(line), format_dir, escape_uri, escape_html);
             ASSERT(0 <= iSnprintRet );
             line_length = strlen(line);
             line[line_length] = 0;
@@ -984,9 +1014,9 @@ static char* local_file_list(const char *path)
                 if ( NULL == tmp )
                 {
                     log_error("{%s:%d} realloc fail.", __FUNCTION__, __LINE__);
-                    free( result );
-                    free(utf8);
                     FindClose(hFind);
+                    free(result);
+                    LOOP_FREE;
                     return NULL;
                 }
                 result = tmp;
@@ -994,7 +1024,7 @@ static char* local_file_list(const char *path)
             iSnprintRet = memcpy_s(result+offset, size - offset, line, line_length);
             ASSERT( 0 == iSnprintRet );
             offset += line_length;
-            free(utf8);
+            LOOP_FREE;
         }
 		memset( &FindFileData, 0, sizeof(FindFileData) );
     } while (FindNextFileW(hFind, &FindFileData));
@@ -1025,7 +1055,7 @@ static char* local_file_list(const char *path)
             //       escape_uri
             charp2free_t escape_html = NULL;
             charp2free_t escape_uri = NULL;
-            charp2free_t ansi = NULL;
+            charp2free_t ansi = NULL; // This variable is used to calculate the width of the string
 
             size_t size_str_len = 0;
 
@@ -1054,7 +1084,7 @@ static char* local_file_list(const char *path)
                 log_error("{%s:%d} unicode_to_ansi fail.", __FUNCTION__, __LINE__);                
                 FindClose(hFind);
                 free(result);
-                LOOP_FREE
+                LOOP_FREE;
                 return NULL;
             }
 
@@ -1063,7 +1093,7 @@ static char* local_file_list(const char *path)
                 log_error("{%s:%d} html_escape fail.", __FUNCTION__, __LINE__);
                 FindClose(hFind);
                 free(result);
-                LOOP_FREE
+                LOOP_FREE;
                 return NULL;
             }
             escape_uri = url_escape(utf8);
@@ -1071,7 +1101,7 @@ static char* local_file_list(const char *path)
                 log_error("{%s:%d} url_escape fail.", __FUNCTION__, __LINE__);
                 FindClose(hFind);
                 free(result);
-                LOOP_FREE
+                LOOP_FREE;
                 return NULL;
             }
 
@@ -1103,7 +1133,7 @@ static char* local_file_list(const char *path)
                     log_error("{%s:%d} realloc fail.", __FUNCTION__, __LINE__);
                     FindClose(hFind);
                     free(result);
-                    LOOP_FREE
+                    LOOP_FREE;
                     return NULL;
                 }
                 result = tmp;
@@ -1111,7 +1141,7 @@ static char* local_file_list(const char *path)
             iSnprintRet = memcpy_s(result+offset, size-offset, line, line_length);
             ASSERT( 0 == iSnprintRet );
             offset += line_length;
-            LOOP_FREE
+            LOOP_FREE;
         }
 		memset( &FindFileData, 0, sizeof(FindFileData) );
     } while (FindNextFileW(hFind, &FindFileData));

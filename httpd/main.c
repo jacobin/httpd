@@ -66,7 +66,7 @@ Bool_t parse_command_line( int argc, char* argv[], charp2free_t* root_path, UINT
     int iSnprintRet = -1;
 
 
-    const struct option long_options[]  =
+    const struct option_a long_options[]  =
     {
         { "verbose",   ARG_NONE, &verbose_flag,        1 },
         { "brief",     ARG_NONE, &verbose_flag,        0 },
@@ -79,7 +79,7 @@ Bool_t parse_command_line( int argc, char* argv[], charp2free_t* root_path, UINT
     while ( 1 )
     {
         int option_index = 0;
-        const int c = getopt_long( argc, argv, "r:p:h", long_options, &option_index );
+        const int c = getopt_long_a( argc, argv, "r:p:h", long_options, &option_index );
 
         // Check for end of operation or error
         if ( -1 == c )
@@ -108,11 +108,11 @@ Bool_t parse_command_line( int argc, char* argv[], charp2free_t* root_path, UINT
             break;
 
         case 'r':
-            root_path2 = _strdup( optarg );
+            root_path2 = _strdup( optarg_a );
             break;
 
         case 'p':
-            port2 = atoi( optarg );
+            port2 = atoi( optarg_a );
             break;
 
         case 'h':

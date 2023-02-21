@@ -1,7 +1,7 @@
 
 #include "httpd.h"
 #include "utils.h"
-#include <Dbghelp.h> 
+#include <Dbghelp.h>
 #include "getopt.h"
 
 
@@ -37,7 +37,7 @@ LONG __stdcall crush_callback(struct _EXCEPTION_POINTERS* ep)
     {
         return EXCEPTION_CONTINUE_SEARCH;
     }
-    
+
     exceptioninfo.ExceptionPointers = ep;
     exceptioninfo.ThreadId          = GetCurrentThreadId();
     exceptioninfo.ClientPointers    = FALSE;
@@ -56,7 +56,6 @@ LONG __stdcall crush_callback(struct _EXCEPTION_POINTERS* ep)
     return EXCEPTION_EXECUTE_HANDLER;
 }
 
-#include <tchar.h>
 Bool_t parse_command_line( int argc, char* argv[], charp2free_t* root_path, UINT16* port )
 {
     int    verbose_flag = 0;
@@ -100,9 +99,9 @@ Bool_t parse_command_line( int argc, char* argv[], charp2free_t* root_path, UINT
 
             iSnprintRet = sprintf_s(tmp, sizeof(tmp), "option %s", long_options[option_index].name );
             ASSERT( 0 <= iSnprintRet );
-            if ( optarg )
+            if ( optarg_a )
             {
-                iSnprintRet = sprintf_s(tmp+strlen(tmp), sizeof(tmp)-strlen(tmp), " with argument %s", optarg );
+                iSnprintRet = sprintf_s(tmp+strlen(tmp), sizeof(tmp)-strlen(tmp), " with argument %s", optarg_a );
                 ASSERT( 0 <= iSnprintRet );
             }
             log_info("{%s:%d} getopt_long: %s", __FUNCTION__, __LINE__, tmp );
@@ -149,7 +148,7 @@ Bool_t parse_command_line( int argc, char* argv[], charp2free_t* root_path, UINT
     if ( help )
     {
         fprintf(stderr, "httpd [-h/--help]\x20"
-                        "[-rRootPath/--root_path2 RootPath]\x20"
+                        "[-rRootPath/--root_path RootPath]\x20"
                         "[-pPort/--port Port]\x20" );
         return False;
     }
@@ -229,7 +228,7 @@ int main( int argc, char* argv[] )
         port = port2;
     }
     SetUnhandledExceptionFilter(crush_callback);
-    
+
     if ( SUCC != http_startup(&port) )
     {
         return 3;

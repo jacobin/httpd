@@ -56,7 +56,6 @@ LONG __stdcall crush_callback(struct _EXCEPTION_POINTERS* ep)
     return EXCEPTION_EXECUTE_HANDLER;
 }
 
-#include <tchar.h>
 Bool_t parse_command_line( int argc, char* argv[], charp2free_t* root_path, UINT16* port )
 {
     int    verbose_flag = 0;

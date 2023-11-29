@@ -1418,4 +1418,5 @@ static void send_response(event_t *ev, const char *title, const char *status)
     ev_.data = ev_data;
     ev_.callback = write_callback;
     rcodeTmp = event_add(&ev_);
-    ASSERT(FAIL != rcodeTmp );}
+    ASSERT(FAIL != rcodeTmp );
+}

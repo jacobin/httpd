@@ -383,46 +383,48 @@ static int read_request_header(event_t *ev, char **buf, int *size)
 
 static void read_request_boundary(event_t *ev)
 {
-#define WRITE_FILE(fp, buf, size, ev) do { \
-    if (size) { \
-        if (size != fwrite(compare_buff, 1, size, fp)) { \
-            log_error("{%s:%d} write file fail. socket=%d", __FUNCTION__, __LINE__, ev->fd); \
-            release_event_data(ev); \
-            ev->status = EV_IDLE; \
-            response_upload_page(ev, 0); \
-            return; \
+#define WRITE_FILE(fp, buf, size, ev) \
+    do { \
+        if (size) { \
+            if (size != fwrite(compare_buff, 1, size, fp)) { \
+                log_error("{%s:%d} write file fail. socket=%d", __FUNCTION__, __LINE__, ev->fd); \
+                release_event_data(ev); \
+                ev->status = EV_IDLE; \
+                response_upload_page(ev, 0); \
+                return; \
+            } \
         } \
-    } \
-} while (0)
+    } while (0)
 
-#define GET_FILENAME(ev, ptr, size_) do { \
-    ret = reset_filename_from_formdata(ev, &ptr, (size_)); \
-    if (ret == 0) { \
-        log_error("{%s:%d} cannot found filename in formdata. socket=%d", __FUNCTION__, __LINE__, ev->fd); \
-        release_event_data(ev); \
-        ev->status = EV_IDLE; \
-        response_upload_page(ev, 0); \
-        return; \
-    } else if (ret == 1) { \
-        ev->data->fp = fopen(ev->data->file, "wb"); \
-        if (!ev->data->fp) { \
-            log_error("{%s:%d} open file fail. filename=%s, socket=%d, errno=%d", __FUNCTION__, __LINE__, ev->data->file, ev->fd, errno); \
+#define GET_FILENAME(ev, ptr, size_) \
+    do { \
+        ret = reset_filename_from_formdata(ev, &ptr, (size_)); \
+        if (ret == 0) { \
+            log_error("{%s:%d} cannot found filename in formdata. socket=%d", __FUNCTION__, __LINE__, ev->fd); \
             release_event_data(ev); \
             ev->status = EV_IDLE; \
             response_upload_page(ev, 0); \
             return; \
+        } else if (ret == 1) { \
+            ev->data->fp = fopen(ev->data->file, "wb"); \
+            if (!ev->data->fp) { \
+                log_error("{%s:%d} open file fail. filename=%s, socket=%d, errno=%d", __FUNCTION__, __LINE__, ev->data->file, ev->fd, errno); \
+                release_event_data(ev); \
+                ev->status = EV_IDLE; \
+                response_upload_page(ev, 0); \
+                return; \
+            } \
+            compare_buff_size -= ptr - compare_buff; \
+            iSnprintRet = memcpy_s(compare_buff, sizeof(compare_buff), ptr, compare_buff_size); \
+            ASSERT( 0 == iSnprintRet ); \
+            compare_buff[compare_buff_size] = 0; \
+            goto _re_find; \
+        } else { \
+            ev->data->size = compare_buff + compare_buff_size - ptr; \
+            iSnprintRet = memcpy_s(ev->data->data, BUFFER_UNIT, ptr, ev->data->size); \
+            ASSERT( 0 == iSnprintRet ); \
         } \
-        compare_buff_size -= ptr - compare_buff; \
-        iSnprintRet = memcpy_s(compare_buff, sizeof(compare_buff), ptr, compare_buff_size); \
-        ASSERT( 0 == iSnprintRet ); \
-        compare_buff[compare_buff_size] = 0; \
-        goto _re_find; \
-    } else { \
-        ev->data->size = compare_buff + compare_buff_size - ptr; \
-        iSnprintRet = memcpy_s(ev->data->data, BUFFER_UNIT, ptr, ev->data->size); \
-        ASSERT( 0 == iSnprintRet ); \
-    } \
-} while (0)
+    } while (0)
 
     char    *buf    = NULL;
     char    *ptr    = NULL;

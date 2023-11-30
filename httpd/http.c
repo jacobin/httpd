@@ -765,7 +765,7 @@ static int reset_filename_from_formdata(event_t *ev, char **formdata, int size)
     char *p         = NULL;
     int   i         = 0;
     int   found     = 0;
-    char *anis      = NULL;
+    char *ansi      = NULL;
     int iSnprintRet = -1;
     const char* tmp = NULL;
     char file_name2[MAX_PATH2] = {0};
@@ -797,15 +797,15 @@ static int reset_filename_from_formdata(event_t *ev, char **formdata, int size)
     i = strncpy_s( file_name2, sizeof(file_name2), file_name, tmp - file_name );
     ASSERT( 0 == i );
 
-    anis = utf8_to_ansi(file_name2);
+    ansi = utf8_to_ansi(file_name2);
 
     // IE browser: remove client file path
-    p = anis;
+    p = ansi;
     while (*p)
     {
         if (*p == '\\' || *p == '/') {
             if (*(p + 1)) {
-                anis = p + 1;
+                ansi = p + 1;
             }
         }
         p++;
@@ -816,7 +816,7 @@ static int reset_filename_from_formdata(event_t *ev, char **formdata, int size)
     {
         if (ev->data->file[i] == '/')
         {
-            iSnprintRet = memcpy_s(ev->data->file + i + 1, sizeof(ev->data->file) -i -1, anis, strlen(anis) + 1);
+            iSnprintRet = memcpy_s(ev->data->file + i + 1, sizeof(ev->data->file) -i -1, ansi, strlen(ansi) + 1);
             ASSERT( 0 == iSnprintRet );
             break;
         }
@@ -827,7 +827,7 @@ static int reset_filename_from_formdata(event_t *ev, char **formdata, int size)
     {
         remove_file(ev->data->file);
     }
-    free(anis);
+    free(ansi);
     return 1;
 }
 

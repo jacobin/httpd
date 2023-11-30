@@ -801,9 +801,11 @@ static int reset_filename_from_formdata(event_t *ev, char **formdata, int size)
     p = anis;
     while (*p)
     {
-        if (*p == '\\' || *p == '/')
-        if (*(p + 1))
-            anis = p + 1;
+        if (*p == '\\' || *p == '/') {
+            if (*(p + 1)) {
+                anis = p + 1;
+            }
+        }
         p++;
     }
 

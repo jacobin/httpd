@@ -1,6 +1,8 @@
 #ifndef __TYPE_S_H_
 #define __TYPE_S_H_
 
+#include <wchar.h>
+
 typedef char                int8_t;
 typedef short               int16_t;
 typedef long                int32_t;

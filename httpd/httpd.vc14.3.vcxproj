@@ -79,6 +79,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="unicode_display_width.c" />
     <ClCompile Include="event.c" />
     <ClCompile Include="getopt.c" />
     <ClCompile Include="http.c" />
@@ -88,6 +89,7 @@
     <ClCompile Include="utils.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="unicode_display_width.h" />
     <ClInclude Include="event.h" />
     <ClInclude Include="getopt.h" />
     <ClInclude Include="http.h" />

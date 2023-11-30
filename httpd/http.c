@@ -1,6 +1,7 @@
 #include "httpd.h"
 #include <errno.h>
 #include "utils.h"
+#include "unicode_display_width.h"
 
 #define LF                  (u_char) '\n'
 #define CR                  (u_char) '\r'
@@ -921,7 +922,6 @@ static int parse_boundary(event_t *ev, char *data, int size, char **ptr)
 
 #define LOOP_FREE \
     free(utf8); utf8=NULL;\
-    free(ansi); ansi=NULL;\
     free(escape_html); escape_html=NULL;\
     free(escape_uri); escape_uri=NULL;
 
@@ -967,7 +967,6 @@ static char* local_file_list(const char *path)
         {
             charp2free_t escape_html = NULL;
             charp2free_t escape_uri = NULL;
-            charp2free_t ansi = NULL;
 
             if (!result)
             {
@@ -1059,11 +1058,10 @@ static char* local_file_list(const char *path)
             //       escape_uri
             charp2free_t escape_html = NULL;
             charp2free_t escape_uri = NULL;
-            charp2free_t ansi = NULL; // This variable is used to calculate the width of the string
 
             size_t size_str_len = 0;
 
-            ASSERT(NULL == utf8 &&  NULL == ansi &&  NULL == escape_html &&  NULL == escape_uri);
+            ASSERT(NULL == utf8 &&  NULL == escape_html &&  NULL == escape_uri);
             if (!result)
             {
                 result = (char*)malloc(size);
@@ -1080,15 +1078,6 @@ static char* local_file_list(const char *path)
                 log_error("{%s:%d} unicode_to_utf8 fail.", __FUNCTION__, __LINE__);
                 FindClose(hFind);
                 free(result);
-                return NULL;
-            }
-            ansi = unicode_to_ansi(FindFileData.cFileName);
-            if ( NULL == ansi )
-            {
-                log_error("{%s:%d} unicode_to_ansi fail.", __FUNCTION__, __LINE__);                
-                FindClose(hFind);
-                free(result);
-                LOOP_FREE;
                 return NULL;
             }
 
@@ -1114,7 +1103,7 @@ static char* local_file_list(const char *path)
 
             line_length = strlen(line);
             line[line_length++] = 0x20;
-            for (i=strlen(ansi); i<60; i++)
+            for (i= mk_wcswidth(FindFileData.cFileName, wcslen(FindFileData.cFileName)); i<60; i++)
             {
                 line[line_length++] = 0x20;
             }
